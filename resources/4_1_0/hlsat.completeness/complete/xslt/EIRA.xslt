@@ -1,0 +1,1106 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<xsl:stylesheet xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:a="http://www.opengroup.org/xsd/archimate/3.0/" xmlns:iso="http://purl.oclc.org/dsdl/schematron" xmlns:saxon="http://saxon.sf.net/" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
+<!--Implementers: please note that overriding process-prolog or process-root is 
+    the preferred method for meta-stylesheets to use where possible. -->
+
+<xsl:param name="archiveDirParameter" />
+  <xsl:param name="archiveNameParameter" />
+  <xsl:param name="fileNameParameter" />
+  <xsl:param name="fileDirParameter" />
+  <xsl:variable name="document-uri">
+    <xsl:value-of select="document-uri(/)" />
+  </xsl:variable>
+
+<!--PHASES-->
+
+
+<!--PROLOG-->
+<xsl:output indent="yes" method="xml" omit-xml-declaration="no" standalone="yes" />
+
+<!--XSD TYPES FOR XSLT2-->
+
+
+<!--KEYS AND FUNCTIONS-->
+
+
+<!--DEFAULT RULES-->
+
+
+<!--MODE: SCHEMATRON-SELECT-FULL-PATH-->
+<!--This mode can be used to generate an ugly though full XPath for locators-->
+<xsl:template match="*" mode="schematron-select-full-path">
+    <xsl:apply-templates mode="schematron-get-full-path" select="." />
+  </xsl:template>
+
+<!--MODE: SCHEMATRON-FULL-PATH-->
+<!--This mode can be used to generate an ugly though full XPath for locators-->
+<xsl:template match="*" mode="schematron-get-full-path">
+    <xsl:apply-templates mode="schematron-get-full-path" select="parent::*" />
+    <xsl:text>/</xsl:text>
+    <xsl:choose>
+      <xsl:when test="namespace-uri()=''">
+        <xsl:value-of select="name()" />
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:text>*:</xsl:text>
+        <xsl:value-of select="local-name()" />
+        <xsl:text>[namespace-uri()='</xsl:text>
+        <xsl:value-of select="namespace-uri()" />
+        <xsl:text>']</xsl:text>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:variable name="preceding" select="count(preceding-sibling::*[local-name()=local-name(current())                                   and namespace-uri() = namespace-uri(current())])" />
+    <xsl:text>[</xsl:text>
+    <xsl:value-of select="1+ $preceding" />
+    <xsl:text>]</xsl:text>
+  </xsl:template>
+  <xsl:template match="@*" mode="schematron-get-full-path">
+    <xsl:apply-templates mode="schematron-get-full-path" select="parent::*" />
+    <xsl:text>/</xsl:text>
+    <xsl:choose>
+      <xsl:when test="namespace-uri()=''">@<xsl:value-of select="name()" />
+</xsl:when>
+      <xsl:otherwise>
+        <xsl:text>@*[local-name()='</xsl:text>
+        <xsl:value-of select="local-name()" />
+        <xsl:text>' and namespace-uri()='</xsl:text>
+        <xsl:value-of select="namespace-uri()" />
+        <xsl:text>']</xsl:text>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+<!--MODE: SCHEMATRON-FULL-PATH-2-->
+<!--This mode can be used to generate prefixed XPath for humans-->
+<xsl:template match="node() | @*" mode="schematron-get-full-path-2">
+    <xsl:for-each select="ancestor-or-self::*">
+      <xsl:text>/</xsl:text>
+      <xsl:value-of select="name(.)" />
+      <xsl:if test="preceding-sibling::*[name(.)=name(current())]">
+        <xsl:text>[</xsl:text>
+        <xsl:value-of select="count(preceding-sibling::*[name(.)=name(current())])+1" />
+        <xsl:text>]</xsl:text>
+      </xsl:if>
+    </xsl:for-each>
+    <xsl:if test="not(self::*)">
+      <xsl:text />/@<xsl:value-of select="name(.)" />
+    </xsl:if>
+  </xsl:template>
+<!--MODE: SCHEMATRON-FULL-PATH-3-->
+<!--This mode can be used to generate prefixed XPath for humans 
+	(Top-level element has index)-->
+
+<xsl:template match="node() | @*" mode="schematron-get-full-path-3">
+    <xsl:for-each select="ancestor-or-self::*">
+      <xsl:text>/</xsl:text>
+      <xsl:value-of select="name(.)" />
+      <xsl:if test="parent::*">
+        <xsl:text>[</xsl:text>
+        <xsl:value-of select="count(preceding-sibling::*[name(.)=name(current())])+1" />
+        <xsl:text>]</xsl:text>
+      </xsl:if>
+    </xsl:for-each>
+    <xsl:if test="not(self::*)">
+      <xsl:text />/@<xsl:value-of select="name(.)" />
+    </xsl:if>
+  </xsl:template>
+
+<!--MODE: GENERATE-ID-FROM-PATH -->
+<xsl:template match="/" mode="generate-id-from-path" />
+  <xsl:template match="text()" mode="generate-id-from-path">
+    <xsl:apply-templates mode="generate-id-from-path" select="parent::*" />
+    <xsl:value-of select="concat('.text-', 1+count(preceding-sibling::text()), '-')" />
+  </xsl:template>
+  <xsl:template match="comment()" mode="generate-id-from-path">
+    <xsl:apply-templates mode="generate-id-from-path" select="parent::*" />
+    <xsl:value-of select="concat('.comment-', 1+count(preceding-sibling::comment()), '-')" />
+  </xsl:template>
+  <xsl:template match="processing-instruction()" mode="generate-id-from-path">
+    <xsl:apply-templates mode="generate-id-from-path" select="parent::*" />
+    <xsl:value-of select="concat('.processing-instruction-', 1+count(preceding-sibling::processing-instruction()), '-')" />
+  </xsl:template>
+  <xsl:template match="@*" mode="generate-id-from-path">
+    <xsl:apply-templates mode="generate-id-from-path" select="parent::*" />
+    <xsl:value-of select="concat('.@', name())" />
+  </xsl:template>
+  <xsl:template match="*" mode="generate-id-from-path" priority="-0.5">
+    <xsl:apply-templates mode="generate-id-from-path" select="parent::*" />
+    <xsl:text>.</xsl:text>
+    <xsl:value-of select="concat('.',name(),'-',1+count(preceding-sibling::*[name()=name(current())]),'-')" />
+  </xsl:template>
+
+<!--MODE: GENERATE-ID-2 -->
+<xsl:template match="/" mode="generate-id-2">U</xsl:template>
+  <xsl:template match="*" mode="generate-id-2" priority="2">
+    <xsl:text>U</xsl:text>
+    <xsl:number count="*" level="multiple" />
+  </xsl:template>
+  <xsl:template match="node()" mode="generate-id-2">
+    <xsl:text>U.</xsl:text>
+    <xsl:number count="*" level="multiple" />
+    <xsl:text>n</xsl:text>
+    <xsl:number count="node()" />
+  </xsl:template>
+  <xsl:template match="@*" mode="generate-id-2">
+    <xsl:text>U.</xsl:text>
+    <xsl:number count="*" level="multiple" />
+    <xsl:text>_</xsl:text>
+    <xsl:value-of select="string-length(local-name(.))" />
+    <xsl:text>_</xsl:text>
+    <xsl:value-of select="translate(name(),':','.')" />
+  </xsl:template>
+<!--Strip characters-->  <xsl:template match="text()" priority="-1" />
+
+<!--SCHEMA SETUP-->
+<xsl:template match="/">
+    <svrl:schematron-output schemaVersion="" title="EIRA v4.1.0 - High-Level SAT Completeness Profile - Complete level">
+      <xsl:comment>
+        <xsl:value-of select="$archiveDirParameter" />   
+		 <xsl:value-of select="$archiveNameParameter" />  
+		 <xsl:value-of select="$fileNameParameter" />  
+		 <xsl:value-of select="$fileDirParameter" />
+      </xsl:comment>
+      <svrl:ns-prefix-in-attribute-values prefix="a" uri="http://www.opengroup.org/xsd/archimate/3.0/" />
+      <svrl:ns-prefix-in-attribute-values prefix="xsi" uri="http://www.w3.org/2001/XMLSchema-instance" />
+      <svrl:active-pattern>
+        <xsl:attribute name="document">
+          <xsl:value-of select="document-uri(/)" />
+        </xsl:attribute>
+        <xsl:attribute name="id">MEF-Step.01</xsl:attribute>
+        <xsl:attribute name="name">MEF-Step.01</xsl:attribute>
+        <xsl:apply-templates />
+      </svrl:active-pattern>
+      <xsl:apply-templates mode="M5" select="/" />
+      <svrl:active-pattern>
+        <xsl:attribute name="document">
+          <xsl:value-of select="document-uri(/)" />
+        </xsl:attribute>
+        <xsl:attribute name="id">MEF-Step.02</xsl:attribute>
+        <xsl:attribute name="name">MEF-Step.02</xsl:attribute>
+        <xsl:apply-templates />
+      </svrl:active-pattern>
+      <xsl:apply-templates mode="M6" select="/" />
+    </svrl:schematron-output>
+  </xsl:template>
+
+<!--SCHEMATRON PATTERNS-->
+<svrl:text>EIRA v4.1.0 - High-Level SAT Completeness Profile - Complete level</svrl:text>
+
+<!--PATTERN MEF-Step.01-->
+
+
+	<!--RULE -->
+<xsl:template match="/a:model" mode="M5" priority="1003">
+    <svrl:fired-rule context="/a:model" />
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="(a:views/a:diagrams/a:view[./a:name = 'Legal view'])/count(.) = 1" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="(a:views/a:diagrams/a:view[./a:name = 'Legal view'])/count(.) = 1">
+          <xsl:attribute name="id">EIRA-001-01</xsl:attribute>
+          <xsl:attribute name="flag">fatal</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-001] The model must define a view named 'Legal view'.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="(a:views/a:diagrams/a:view[./a:name = 'Organisational view'])/count(.) = 1" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="(a:views/a:diagrams/a:view[./a:name = 'Organisational view'])/count(.) = 1">
+          <xsl:attribute name="id">EIRA-001-02</xsl:attribute>
+          <xsl:attribute name="flag">fatal</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-001] The model must define a view named 'Organisational view'.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="(a:views/a:diagrams/a:view[./a:name = 'Semantic view'])/count(.) = 1" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="(a:views/a:diagrams/a:view[./a:name = 'Semantic view'])/count(.) = 1">
+          <xsl:attribute name="id">EIRA-001-03</xsl:attribute>
+          <xsl:attribute name="flag">fatal</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-001] The model must define a view named 'Semantic view'.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="(a:views/a:diagrams/a:view[./a:name = 'Technical view - application'])/count(.) = 1" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="(a:views/a:diagrams/a:view[./a:name = 'Technical view - application'])/count(.) = 1">
+          <xsl:attribute name="id">EIRA-001-04</xsl:attribute>
+          <xsl:attribute name="flag">fatal</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-001] The model must define a view named 'Technical view - application'.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="(a:views/a:diagrams/a:view[./a:name = 'Technical view - infrastructure'])/count(.) = 1" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="(a:views/a:diagrams/a:view[./a:name = 'Technical view - infrastructure'])/count(.) = 1">
+          <xsl:attribute name="id">EIRA-001-05</xsl:attribute>
+          <xsl:attribute name="flag">fatal</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-001] The model must define a view named 'Technical view - infrastructure'.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="exists(a:elements/a:element[matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'Interoperability Aspect')])" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="exists(a:elements/a:element[matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'Interoperability Aspect')])">
+          <xsl:attribute name="id">EIRA-021</xsl:attribute>
+          <xsl:attribute name="flag">warning</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-021] At least one SBB should be defined for the 'Interoperability Aspect' ABB.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="exists(a:elements/a:element[matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'Interoperability Requirement|Legal Interoperability Requirement|Organisational Interoperability Requirement|Semantic Interoperability Requirement|Technical Interoperability Requirement')])" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="exists(a:elements/a:element[matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'Interoperability Requirement|Legal Interoperability Requirement|Organisational Interoperability Requirement|Semantic Interoperability Requirement|Technical Interoperability Requirement')])">
+          <xsl:attribute name="id">EIRA-022</xsl:attribute>
+          <xsl:attribute name="flag">warning</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-022] At least one SBB should be defined for the 'Interoperability Requirement' ABB or one of its specialisations ('Legal', 'Organisational', 'Semantic' or 'Technical Interoperability Requirement').</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="exists(a:elements/a:element[matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'Machine to Machine Interface|Human Interface')])" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="exists(a:elements/a:element[matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'Machine to Machine Interface|Human Interface')])">
+          <xsl:attribute name="id">EIRA-023</xsl:attribute>
+          <xsl:attribute name="flag">fatal</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-023] At least one SBB must be defined for the 'Machine to Machine Interface' or 'Human Interface' ABBs.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="exists(a:elements/a:element[matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'Legislation Catalogue')])" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="exists(a:elements/a:element[matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'Legislation Catalogue')])">
+          <xsl:attribute name="id">EIRA-024-01</xsl:attribute>
+          <xsl:attribute name="flag">warning</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'Legislation Catalogue' SBB is defined.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="exists(a:elements/a:element[matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'Public Service Catalogue')])" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="exists(a:elements/a:element[matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'Public Service Catalogue')])">
+          <xsl:attribute name="id">EIRA-024-02</xsl:attribute>
+          <xsl:attribute name="flag">warning</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'Public Service Catalogue' SBB is defined.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="exists(a:elements/a:element[matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'Data Set Catalogue')])" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="exists(a:elements/a:element[matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'Data Set Catalogue')])">
+          <xsl:attribute name="id">EIRA-024-03</xsl:attribute>
+          <xsl:attribute name="flag">warning</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'Data Set Catalogue' SBB is defined.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="exists(a:elements/a:element[matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'Ontologies Catalogue')])" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="exists(a:elements/a:element[matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'Ontologies Catalogue')])">
+          <xsl:attribute name="id">EIRA-024-04</xsl:attribute>
+          <xsl:attribute name="flag">warning</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'Ontologies Catalogue' SBB is defined.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="exists(a:elements/a:element[matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'Service Registry')])" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="exists(a:elements/a:element[matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'Service Registry')])">
+          <xsl:attribute name="id">EIRA-024-05</xsl:attribute>
+          <xsl:attribute name="flag">warning</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'Service Registry' SBB is defined.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="exists(a:elements/a:element[matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'API Catalogue')])" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="exists(a:elements/a:element[matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'API Catalogue')])">
+          <xsl:attribute name="id">EIRA-024-06</xsl:attribute>
+          <xsl:attribute name="flag">warning</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'API Catalogue' SBB is defined.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="exists(a:elements/a:element[matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'Legislation on Data Information and Knowledge Exchange')])" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="exists(a:elements/a:element[matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'Legislation on Data Information and Knowledge Exchange')])">
+          <xsl:attribute name="id">EIRA-024-07</xsl:attribute>
+          <xsl:attribute name="flag">warning</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'Legislation on Data Information and Knowledge Exchange' SBB is defined.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="exists(a:elements/a:element[matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'Service Delivery Mode')])" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="exists(a:elements/a:element[matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'Service Delivery Mode')])">
+          <xsl:attribute name="id">EIRA-024-08</xsl:attribute>
+          <xsl:attribute name="flag">warning</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'Service Delivery Mode' SBB is defined.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="exists(a:elements/a:element[matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'Data mapping')])" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="exists(a:elements/a:element[matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'Data mapping')])">
+          <xsl:attribute name="id">EIRA-024-09</xsl:attribute>
+          <xsl:attribute name="flag">warning</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'Data mapping' SBB is defined.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="exists(a:elements/a:element[matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'Legal Interoperability Agreement')])" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="exists(a:elements/a:element[matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'Legal Interoperability Agreement')])">
+          <xsl:attribute name="id">EIRA-024-10</xsl:attribute>
+          <xsl:attribute name="flag">warning</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'Legal Interoperability Agreement' SBB is defined.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="exists(a:elements/a:element[matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'Organisational Interoperability Agreement')])" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="exists(a:elements/a:element[matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'Organisational Interoperability Agreement')])">
+          <xsl:attribute name="id">EIRA-024-11</xsl:attribute>
+          <xsl:attribute name="flag">warning</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'Organisational Interoperability Agreement' SBB is defined.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="exists(a:elements/a:element[matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'Semantic Interoperability Agreement')])" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="exists(a:elements/a:element[matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'Semantic Interoperability Agreement')])">
+          <xsl:attribute name="id">EIRA-024-12</xsl:attribute>
+          <xsl:attribute name="flag">warning</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'Semantic Interoperability Agreement' SBB is defined.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="exists(a:elements/a:element[matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'Technical Interoperability Agreement')])" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="exists(a:elements/a:element[matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'Technical Interoperability Agreement')])">
+          <xsl:attribute name="id">EIRA-024-13</xsl:attribute>
+          <xsl:attribute name="flag">warning</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'Technical Interoperability Agreement' SBB is defined.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:apply-templates mode="M5" select="*" />
+  </xsl:template>
+
+	<!--RULE -->
+<xsl:template match="/a:model/a:elements/a:element[matches(string(a:name), '&lt;&lt;[ \t]*eira:.+[ \t]*>>.+')]" mode="M5" priority="1002">
+    <svrl:fired-rule context="/a:model/a:elements/a:element[matches(string(a:name), '&lt;&lt;[ \t]*eira:.+[ \t]*>>.+')]" />
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="every $sbbDeclaredAbbName in substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), $elementType in string(@xsi:type) satisfies (let $abb := document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier)] and string(a:name) = $sbbDeclaredAbbName] return not(exists($abb)) or $abb/@xsi:type = $elementType)" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="every $sbbDeclaredAbbName in substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), $elementType in string(@xsi:type) satisfies (let $abb := document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier)] and string(a:name) = $sbbDeclaredAbbName] return not(exists($abb)) or $abb/@xsi:type = $elementType)">
+          <xsl:attribute name="id">EIRA-003</xsl:attribute>
+          <xsl:attribute name="flag">fatal</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-003] SBB '<xsl:text />
+            <xsl:value-of select="normalize-space(substring-after(string(a:name), '>>'))" />
+            <xsl:text />' (<xsl:text />
+            <xsl:value-of select="substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:')" />
+            <xsl:text />) has an invalid element type '<xsl:text />
+            <xsl:value-of select="string(@xsi:type)" />
+            <xsl:text />'. Expected element type '<xsl:text />
+            <xsl:value-of select="let $elementName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:') return string(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $elementName]/@xsi:type)" />
+            <xsl:text />'.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="let $sbbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:') return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[string(a:name) = $sbbName])" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="let $sbbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:') return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[string(a:name) = $sbbName])">
+          <xsl:attribute name="id">EIRA-004</xsl:attribute>
+          <xsl:attribute name="flag">fatal</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-004] SBB '<xsl:text />
+            <xsl:value-of select="normalize-space(substring-after(string(a:name), '>>'))" />
+            <xsl:text />' references an invalid ABB. No ABB is defined for name '<xsl:text />
+            <xsl:value-of select="substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:')" />
+            <xsl:text />'.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="let $abbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:') return (let $sbbAttributes := a:properties return (every $abbAttributeName in document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[(let $propId := string(@identifier) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[string(a:name) = $abbName]/a:properties/a:property[string(@propertyDefinitionRef) = $propId]))]/a:name/string(.) satisfies (($abbAttributeName = 'ID' or $abbAttributeName = 'eira:ABB_Status' or $abbAttributeName = 'eira:synonym' or $abbAttributeName = 'eira:unit_in_DG' or $abbAttributeName = 'dct:references' or $abbAttributeName = 'eira:reuse_status' or $abbAttributeName = 'eira:specific_policy_issue' or $abbAttributeName = 'eira:operational_date' or $abbAttributeName = 'dct:description' or $abbAttributeName = 'eira:policy_area' or $abbAttributeName = 'eira:owner' or $abbAttributeName = 'eira:description' or $abbAttributeName = 'eira:reusability_score' or $abbAttributeName = 'eira:data_quality_level' or $abbAttributeName = 'eira:data_quality_score' or $abbAttributeName = 'eira:iop_level' or $abbAttributeName = 'eira:iop_score' or $abbAttributeName = 'eira:GovIS_ID' or $abbAttributeName = 'eira:IES_category' or $abbAttributeName = 'eira:importance_for_the_functioning_of_the_EU' or $abbAttributeName = 'eira:actual_use' or $abbAttributeName = 'eira:actual_reuse' or $abbAttributeName = 'eira:view') or exists($sbbAttributes/a:property[(let $ssbPropId := string(@propertyDefinitionRef) return exists(/a:model/a:propertyDefinitions/a:propertyDefinition[string(@identifier) = $ssbPropId and string(a:name) = $abbAttributeName])) and normalize-space(string(./a:value)) != '']))))" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="let $abbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:') return (let $sbbAttributes := a:properties return (every $abbAttributeName in document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[(let $propId := string(@identifier) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[string(a:name) = $abbName]/a:properties/a:property[string(@propertyDefinitionRef) = $propId]))]/a:name/string(.) satisfies (($abbAttributeName = 'ID' or $abbAttributeName = 'eira:ABB_Status' or $abbAttributeName = 'eira:synonym' or $abbAttributeName = 'eira:unit_in_DG' or $abbAttributeName = 'dct:references' or $abbAttributeName = 'eira:reuse_status' or $abbAttributeName = 'eira:specific_policy_issue' or $abbAttributeName = 'eira:operational_date' or $abbAttributeName = 'dct:description' or $abbAttributeName = 'eira:policy_area' or $abbAttributeName = 'eira:owner' or $abbAttributeName = 'eira:description' or $abbAttributeName = 'eira:reusability_score' or $abbAttributeName = 'eira:data_quality_level' or $abbAttributeName = 'eira:data_quality_score' or $abbAttributeName = 'eira:iop_level' or $abbAttributeName = 'eira:iop_score' or $abbAttributeName = 'eira:GovIS_ID' or $abbAttributeName = 'eira:IES_category' or $abbAttributeName = 'eira:importance_for_the_functioning_of_the_EU' or $abbAttributeName = 'eira:actual_use' or $abbAttributeName = 'eira:actual_reuse' or $abbAttributeName = 'eira:view') or exists($sbbAttributes/a:property[(let $ssbPropId := string(@propertyDefinitionRef) return exists(/a:model/a:propertyDefinitions/a:propertyDefinition[string(@identifier) = $ssbPropId and string(a:name) = $abbAttributeName])) and normalize-space(string(./a:value)) != '']))))">
+          <xsl:attribute name="id">EIRA-005</xsl:attribute>
+          <xsl:attribute name="flag">warning</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-005] SBB '<xsl:text />
+            <xsl:value-of select="normalize-space(substring-after(string(a:name), '>>'))" />
+            <xsl:text />' (<xsl:text />
+            <xsl:value-of select="substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:')" />
+            <xsl:text />) is missing required attribute(s) [<xsl:text />
+            <xsl:value-of select="let $sbbProperties := a:properties return (let $sbbPropertyDefinitions := /a:model/a:propertyDefinitions return (let $abbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(./a:name), '&lt;&lt;')), '>>')), 'eira:') return (document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[not(string(./a:name) = 'ID' or string(./a:name) = 'eira:ABB_Status' or string(./a:name) = 'eira:synonym' or string(./a:name) = 'eira:unit_in_DG' or string(./a:name) = 'dct:references' or string(./a:name) = 'eira:reuse_status' or string(./a:name) = 'eira:specific_policy_issue' or string(./a:name) = 'eira:operational_date' or string(./a:name) = 'dct:description' or string(./a:name) = 'eira:policy_area' or string(./a:name) = 'eira:owner' or string(./a:name) = 'eira:description' or string(./a:name) = 'eira:reusability_score' or string(./a:name) = 'eira:data_quality_level' or string(./a:name) = 'eira:data_quality_score' or string(./a:name) = 'eira:iop_level' or string(./a:name) = 'eira:iop_score' or string(./a:name) = 'eira:GovIS_ID' or string(./a:name) = 'eira:IES_category' or string(./a:name) = 'eira:importance_for_the_functioning_of_the_EU' or string(./a:name) = 'eira:actual_use' or string(./a:name) = 'eira:actual_reuse' or string(./a:name) = 'eira:view') and (let $propId := string(./@identifier) return (let $propName := string(./a:name) return (exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[string(./a:name) = $abbName]/a:properties/a:property[string(./@propertyDefinitionRef) = $propId and not(exists($sbbPropertyDefinitions/a:propertyDefinition[(let $modelPropId := string(./@identifier) return exists($sbbProperties/a:property[string(./@propertyDefinitionRef) = $modelPropId and normalize-space(string(./a:value)) != ''])) and string(./a:name) = $propName]))]))))])))/a:name/string(.)" />
+            <xsl:text />].</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="let $sbbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:') return (let $abb := document('eira/EIRA.xml')/a:model/a:elements/a:element[string(a:name) = $sbbName] return (not(exists($abb)) or not(exists($abb/a:properties/a:property[string(./a:value) = 'Obsolete' and string(./@propertyDefinitionRef) = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[string(./a:name) = 'eira:ABB_Status']/@identifier)]))))" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="let $sbbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:') return (let $abb := document('eira/EIRA.xml')/a:model/a:elements/a:element[string(a:name) = $sbbName] return (not(exists($abb)) or not(exists($abb/a:properties/a:property[string(./a:value) = 'Obsolete' and string(./@propertyDefinitionRef) = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[string(./a:name) = 'eira:ABB_Status']/@identifier)]))))">
+          <xsl:attribute name="id">EIRA-006</xsl:attribute>
+          <xsl:attribute name="flag">warning</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-006] SBB '<xsl:text />
+            <xsl:value-of select="normalize-space(substring-after(string(a:name), '>>'))" />
+            <xsl:text />' refers to obsolete ABB '<xsl:text />
+            <xsl:value-of select="substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:')" />
+            <xsl:text />'.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="not(matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'Interoperability Specification|Legal Interoperability Specification|Organisational Interoperability Specification'))" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="not(matches(substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:'), 'Interoperability Specification|Legal Interoperability Specification|Organisational Interoperability Specification'))">
+          <xsl:attribute name="id">EIRA-025</xsl:attribute>
+          <xsl:attribute name="flag">fatal</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-025] SBBs for the 'Interoperability Specification' ABB or one of its specialisations ('Legal', 'Organisational', 'Semantic' or 'Technical Interoperability Specification') are not allowed. SBB '<xsl:text />
+            <xsl:value-of select="normalize-space(substring-after(string(a:name), '>>'))" />
+            <xsl:text />' (<xsl:text />
+            <xsl:value-of select="substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:')" />
+            <xsl:text />) must be removed.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="let $declaredAbbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:') return matches($declaredAbbName, '(Interoperability Aspect|Interoperability Requirement|Legal Interoperability Requirement|Organisational Interoperability Requirement|Semantic Interoperability Requirement|Technical Interoperability Requirement|Machine to Machine Interface|Human Interface|Public Service Catalogue|Data Set Catalogue|Service Registry Component|Service Delivery Mode|Representation|Organisational Interoperability Agreement|Semantic Interoperability Agreement|Technical Interoperability Agreement)') or exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier) and starts-with(string(a:value), 'eira:')] and string(a:name) = $declaredAbbName and (let $abbElementId := string(@identifier) return exists(document('eira/EIRA.xml')/a:model/a:organizations//a:item[string(a:label) = 'Legal View Concepts']/a:item[string(@identifierRef) = $abbElementId]))])" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="let $declaredAbbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:') return matches($declaredAbbName, '(Interoperability Aspect|Interoperability Requirement|Legal Interoperability Requirement|Organisational Interoperability Requirement|Semantic Interoperability Requirement|Technical Interoperability Requirement|Machine to Machine Interface|Human Interface|Public Service Catalogue|Data Set Catalogue|Service Registry Component|Service Delivery Mode|Representation|Organisational Interoperability Agreement|Semantic Interoperability Agreement|Technical Interoperability Agreement)') or exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier) and starts-with(string(a:value), 'eira:')] and string(a:name) = $declaredAbbName and (let $abbElementId := string(@identifier) return exists(document('eira/EIRA.xml')/a:model/a:organizations//a:item[string(a:label) = 'Legal View Concepts']/a:item[string(@identifierRef) = $abbElementId]))])">
+          <xsl:attribute name="id">EIRA-026</xsl:attribute>
+          <xsl:attribute name="flag">fatal</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-026] Only legal view SBBs may be modeled (unless explicitly allowed). SBB '<xsl:text />
+            <xsl:value-of select="normalize-space(substring-after(string(a:name), '>>'))" />
+            <xsl:text />' (<xsl:text />
+            <xsl:value-of select="substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:')" />
+            <xsl:text />) must be removed.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="let $abbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:') return (if (matches($abbName, 'Interoperability Requirement|Legal Interoperability Requirement|Organisational Interoperability Requirement|Semantic Interoperability Requirement|Technical Interoperability Requirement')) then (let $sbbElementId := ./@identifier return (some $relationship in (/a:model/a:relationships/a:relationship[string(./@xsi:type) = 'Aggregation' and string(./@target) = $sbbElementId]) satisfies (let $parentSbbElementId := string($relationship/@source) return (exists(/a:model/a:elements/a:element[string(./@identifier) = $parentSbbElementId and substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:') = 'Interoperability Aspect']))))) else (true()))" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="let $abbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:') return (if (matches($abbName, 'Interoperability Requirement|Legal Interoperability Requirement|Organisational Interoperability Requirement|Semantic Interoperability Requirement|Technical Interoperability Requirement')) then (let $sbbElementId := ./@identifier return (some $relationship in (/a:model/a:relationships/a:relationship[string(./@xsi:type) = 'Aggregation' and string(./@target) = $sbbElementId]) satisfies (let $parentSbbElementId := string($relationship/@source) return (exists(/a:model/a:elements/a:element[string(./@identifier) = $parentSbbElementId and substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:') = 'Interoperability Aspect']))))) else (true()))">
+          <xsl:attribute name="id">EIRA-027</xsl:attribute>
+          <xsl:attribute name="flag">warning</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-027] SBB '<xsl:text />
+            <xsl:value-of select="normalize-space(substring-after(string(a:name), '>>'))" />
+            <xsl:text />' (<xsl:text />
+            <xsl:value-of select="substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:')" />
+            <xsl:text />) should be aggregated by an Interoperability Aspect SBB.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:apply-templates mode="M5" select="*" />
+  </xsl:template>
+
+	<!--RULE -->
+<xsl:template match="/a:model/a:elements/a:element[let $name := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier)] and string(a:name) = $name])]" mode="M5" priority="1001">
+    <svrl:fired-rule context="/a:model/a:elements/a:element[let $name := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier)] and string(a:name) = $name])]" />
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="every $elementName in string(a:name), $elementType in string(@xsi:type) satisfies ($elementType = string(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier)] and string(a:name) = $elementName]/@xsi:type))" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="every $elementName in string(a:name), $elementType in string(@xsi:type) satisfies ($elementType = string(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier)] and string(a:name) = $elementName]/@xsi:type))">
+          <xsl:attribute name="id">EIRA-008</xsl:attribute>
+          <xsl:attribute name="flag">fatal</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-008] ABB '<xsl:text />
+            <xsl:value-of select="normalize-space(a:name)" />
+            <xsl:text />' defined with element type '<xsl:text />
+            <xsl:value-of select="string(@xsi:type)" />
+            <xsl:text />' that does not match the EIRA. Expected element type '<xsl:text />
+            <xsl:value-of select="let $elementName := string(a:name) return string(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $elementName]/@xsi:type)" />
+            <xsl:text />'.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:apply-templates mode="M5" select="*" />
+  </xsl:template>
+
+	<!--RULE -->
+<xsl:template match="/a:model/a:elements/a:element[matches(string(a:name), '&lt;&lt;[ \t]*eira:.+[ \t]*>>.+')]/a:properties/a:property[(let $propId := string(./@propertyDefinitionRef) return (let $propertyName := string(/a:model/a:propertyDefinitions/a:propertyDefinition[string(./@identifier) = $propId]/a:name) return (let $abbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(./../../a:name), '&lt;&lt;')), '>>')), 'eira:') return (exists(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[string(./a:name) = $propertyName and (let $abbPropId := string(./@identifier) return (exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[string(./a:name) = $abbName]/a:properties/a:property[string(./@propertyDefinitionRef) = $abbPropId])))])))))]" mode="M5" priority="1000">
+    <svrl:fired-rule context="/a:model/a:elements/a:element[matches(string(a:name), '&lt;&lt;[ \t]*eira:.+[ \t]*>>.+')]/a:properties/a:property[(let $propId := string(./@propertyDefinitionRef) return (let $propertyName := string(/a:model/a:propertyDefinitions/a:propertyDefinition[string(./@identifier) = $propId]/a:name) return (let $abbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(./../../a:name), '&lt;&lt;')), '>>')), 'eira:') return (exists(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[string(./a:name) = $propertyName and (let $abbPropId := string(./@identifier) return (exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[string(./a:name) = $abbName]/a:properties/a:property[string(./@propertyDefinitionRef) = $abbPropId])))])))))]" />
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="let $pValue := normalize-space(string(a:value)) return (let $pIdentifier := string(@propertyDefinitionRef) return (let $propertyName := string(/a:model/a:propertyDefinitions/a:propertyDefinition[string(./@identifier) = $pIdentifier]/a:name) return (matches($propertyName, '(ID|eira:synonym)') or (let $abbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(../../a:name), '&lt;&lt;')), '>>')), 'eira:') return (let $abbPropDefinition := (normalize-space(replace(string((document('eira/EIRA.xml')/a:model/a:elements/a:element[string(./a:name) = $abbName]/a:properties/a:property[(let $abbPropId := string(./@propertyDefinitionRef) return (exists(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[string(./@identifier) = $abbPropId and string(./a:name) = $propertyName])))]/a:value)[1]), '[\-\)\(]', '~'))) return (if (matches($abbPropDefinition, '\[[\w\d\s%~,\.\|]*[\w\d\s,\.%~]\]')) then let $validTokens := tokenize(substring-before(substring-after($abbPropDefinition, '['), ']'), '([ ]*\|[ ]*)|(^[ ]+)|([ ]+$)') return (index-of($validTokens, replace($pValue, '[\-\)\(]', '~')) > 0) else if ($abbPropDefinition != '') then normalize-space(replace($pValue, '[\-\)\(]', '~')) = $abbPropDefinition else true()))))))" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="let $pValue := normalize-space(string(a:value)) return (let $pIdentifier := string(@propertyDefinitionRef) return (let $propertyName := string(/a:model/a:propertyDefinitions/a:propertyDefinition[string(./@identifier) = $pIdentifier]/a:name) return (matches($propertyName, '(ID|eira:synonym)') or (let $abbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(../../a:name), '&lt;&lt;')), '>>')), 'eira:') return (let $abbPropDefinition := (normalize-space(replace(string((document('eira/EIRA.xml')/a:model/a:elements/a:element[string(./a:name) = $abbName]/a:properties/a:property[(let $abbPropId := string(./@propertyDefinitionRef) return (exists(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[string(./@identifier) = $abbPropId and string(./a:name) = $propertyName])))]/a:value)[1]), '[\-\)\(]', '~'))) return (if (matches($abbPropDefinition, '\[[\w\d\s%~,\.\|]*[\w\d\s,\.%~]\]')) then let $validTokens := tokenize(substring-before(substring-after($abbPropDefinition, '['), ']'), '([ ]*\|[ ]*)|(^[ ]+)|([ ]+$)') return (index-of($validTokens, replace($pValue, '[\-\)\(]', '~')) > 0) else if ($abbPropDefinition != '') then normalize-space(replace($pValue, '[\-\)\(]', '~')) = $abbPropDefinition else true()))))))">
+          <xsl:attribute name="id">EIRA-009</xsl:attribute>
+          <xsl:attribute name="flag">warning</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-009] SBB '<xsl:text />
+            <xsl:value-of select="normalize-space(substring-after(string(../../a:name), '>>'))" />
+            <xsl:text />' (<xsl:text />
+            <xsl:value-of select="substring-after(normalize-space(substring-before(normalize-space(substring-after(string(../../a:name), '&lt;&lt;')), '>>')), 'eira:')" />
+            <xsl:text />) defines invalid value '<xsl:text />
+            <xsl:value-of select="string(a:value)" />
+            <xsl:text />' for attribute '<xsl:text />
+            <xsl:value-of select="let $propId := string(./@propertyDefinitionRef) return (string(/a:model/a:propertyDefinitions/a:propertyDefinition[string(./@identifier) = $propId]/a:name))" />
+            <xsl:text />'. Expected '<xsl:text />
+            <xsl:value-of select="let $pIdentifier := string(./@propertyDefinitionRef) return (let $propertyName := string(/a:model/a:propertyDefinitions/a:propertyDefinition[string(./@identifier) = $pIdentifier]/a:name) return (let $abbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(../../a:name), '&lt;&lt;')), '>>')), 'eira:') return (string((document('eira/EIRA.xml')/a:model/a:elements/a:element[string(./a:name) = $abbName]/a:properties/a:property[(let $abbPropId := string(./@propertyDefinitionRef) return (exists(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[string(./@identifier) = $abbPropId and string(./a:name) = $propertyName])))]/a:value)[1]))))" />
+            <xsl:text />'.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="let $pElement := (./../..) return (let $pIdentifier := string(@propertyDefinitionRef) return (let $propertyName := string(/a:model/a:propertyDefinitions/a:propertyDefinition[string(./@identifier) = $pIdentifier]/a:name) return (let $abbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(../../a:name), '&lt;&lt;')), '>>')), 'eira:') return (let $abbPropDefinition := (replace(string((document('eira/EIRA.xml')/a:model/a:elements/a:element[string(./a:name) = $abbName]/a:properties/a:property[(let $abbPropId := string(./@propertyDefinitionRef) return (exists(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[string(./@identifier) = $abbPropId and string(./a:name) = $propertyName])))]/a:value)[1]), '\-', '~')) return (if (matches($abbPropDefinition, '\[(([\w\d\s\|]+)|([\w\d\s]+))\]\*')) then true() else count($pElement/a:properties/a:property[string(./@propertyDefinitionRef) = $pIdentifier]) = 1)))))" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="let $pElement := (./../..) return (let $pIdentifier := string(@propertyDefinitionRef) return (let $propertyName := string(/a:model/a:propertyDefinitions/a:propertyDefinition[string(./@identifier) = $pIdentifier]/a:name) return (let $abbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(../../a:name), '&lt;&lt;')), '>>')), 'eira:') return (let $abbPropDefinition := (replace(string((document('eira/EIRA.xml')/a:model/a:elements/a:element[string(./a:name) = $abbName]/a:properties/a:property[(let $abbPropId := string(./@propertyDefinitionRef) return (exists(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[string(./@identifier) = $abbPropId and string(./a:name) = $propertyName])))]/a:value)[1]), '\-', '~')) return (if (matches($abbPropDefinition, '\[(([\w\d\s\|]+)|([\w\d\s]+))\]\*')) then true() else count($pElement/a:properties/a:property[string(./@propertyDefinitionRef) = $pIdentifier]) = 1)))))">
+          <xsl:attribute name="id">EIRA-010</xsl:attribute>
+          <xsl:attribute name="flag">warning</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-010] SBB '<xsl:text />
+            <xsl:value-of select="normalize-space(substring-after(string(../../a:name), '>>'))" />
+            <xsl:text />' (<xsl:text />
+            <xsl:value-of select="substring-after(normalize-space(substring-before(normalize-space(substring-after(string(../../a:name), '&lt;&lt;')), '>>')), 'eira:')" />
+            <xsl:text />) must not define multiple values for attribute '<xsl:text />
+            <xsl:value-of select="let $propId := string(./@propertyDefinitionRef) return (string(/a:model/a:propertyDefinitions/a:propertyDefinition[string(./@identifier) = $propId]/a:name))" />
+            <xsl:text />'.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="let $propValue := normalize-space(string(./a:value)) return (let $propId := string(./@propertyDefinitionRef) return (let $propertyName := string(/a:model/a:propertyDefinitions/a:propertyDefinition[string(./@identifier) = $propId]/a:name) return (not($propertyName = 'eira:dependencies' and not((lower-case($propValue) = 'none' or lower-case($propValue) = '-' or lower-case($propValue) = ''))) or (let $idPropId := string(/a:model/a:propertyDefinitions/a:propertyDefinition[./a:name = 'ID']/@identifier) return (every $propValueToken in tokenize($propValue, '[,\s]+') satisfies (exists(/a:model/a:elements/a:element[./a:properties/a:property[./@propertyDefinitionRef = $idPropId and normalize-space(./a:value) = normalize-space($propValueToken)] and (let $referencedSbbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:') return (matches ($referencedSbbName, 'Interoperability Requirement|Legal Interoperability Requirement|Organisational Interoperability Requirement|Semantic Interoperability Requirement|Technical Interoperability Requirement')))])))))))" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="let $propValue := normalize-space(string(./a:value)) return (let $propId := string(./@propertyDefinitionRef) return (let $propertyName := string(/a:model/a:propertyDefinitions/a:propertyDefinition[string(./@identifier) = $propId]/a:name) return (not($propertyName = 'eira:dependencies' and not((lower-case($propValue) = 'none' or lower-case($propValue) = '-' or lower-case($propValue) = ''))) or (let $idPropId := string(/a:model/a:propertyDefinitions/a:propertyDefinition[./a:name = 'ID']/@identifier) return (every $propValueToken in tokenize($propValue, '[,\s]+') satisfies (exists(/a:model/a:elements/a:element[./a:properties/a:property[./@propertyDefinitionRef = $idPropId and normalize-space(./a:value) = normalize-space($propValueToken)] and (let $referencedSbbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:') return (matches ($referencedSbbName, 'Interoperability Requirement|Legal Interoperability Requirement|Organisational Interoperability Requirement|Semantic Interoperability Requirement|Technical Interoperability Requirement')))])))))))">
+          <xsl:attribute name="id">EIRA-028</xsl:attribute>
+          <xsl:attribute name="flag">warning</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-028] SBB '<xsl:text />
+            <xsl:value-of select="normalize-space(substring-after(string(../../a:name), '>>'))" />
+            <xsl:text />' (<xsl:text />
+            <xsl:value-of select="substring-after(normalize-space(substring-before(normalize-space(substring-after(string(../../a:name), '&lt;&lt;')), '>>')), 'eira:')" />
+            <xsl:text />) defines an invalid value '<xsl:text />
+            <xsl:value-of select="string(a:value)" />
+            <xsl:text />' for attribute '<xsl:text />
+            <xsl:value-of select="let $propId := string(./@propertyDefinitionRef) return (string(/a:model/a:propertyDefinitions/a:propertyDefinition[string(./@identifier) = $propId]/a:name))" />
+            <xsl:text />'. Each defined value must match the ID attribute of another requirement.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:apply-templates mode="M5" select="*" />
+  </xsl:template>
+  <xsl:template match="text()" mode="M5" priority="-1" />
+  <xsl:template match="@*|node()" mode="M5" priority="-2">
+    <xsl:apply-templates mode="M5" select="*" />
+  </xsl:template>
+
+<!--PATTERN MEF-Step.02-->
+
+
+	<!--RULE -->
+<xsl:template match="/a:model/a:elements/a:element[matches(string(a:name), '&lt;&lt;[ \t]*eira:.+[ \t]*>>.+') and (let $declaredAbbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:') return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier) and starts-with(string(a:value), 'eira:')] and string(a:name) = $declaredAbbName and (let $abbElementId := string(@identifier) return exists(document('eira/EIRA.xml')/a:model/a:organizations//a:item[string(a:label) = 'Legal View Concepts']/a:item[string(@identifierRef) = $abbElementId]))]))]" mode="M6" priority="1013">
+    <svrl:fired-rule context="/a:model/a:elements/a:element[matches(string(a:name), '&lt;&lt;[ \t]*eira:.+[ \t]*>>.+') and (let $declaredAbbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:') return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier) and starts-with(string(a:value), 'eira:')] and string(a:name) = $declaredAbbName and (let $abbElementId := string(@identifier) return exists(document('eira/EIRA.xml')/a:model/a:organizations//a:item[string(a:label) = 'Legal View Concepts']/a:item[string(@identifierRef) = $abbElementId]))]))]" />
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="let $elementId := string(@identifier) return exists(/a:model/a:views/a:diagrams/a:view[string(a:name) = 'Legal view']//a:node[string(@elementRef) = $elementId])" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="let $elementId := string(@identifier) return exists(/a:model/a:views/a:diagrams/a:view[string(a:name) = 'Legal view']//a:node[string(@elementRef) = $elementId])">
+          <xsl:attribute name="id">EIRA-011</xsl:attribute>
+          <xsl:attribute name="flag">fatal</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-011] SBB '<xsl:text />
+            <xsl:value-of select="normalize-space(substring-after(string(a:name), '>>'))" />
+            <xsl:text />' (<xsl:text />
+            <xsl:value-of select="substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:')" />
+            <xsl:text />) is not present in the model's Legal view.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:apply-templates mode="M6" select="*" />
+  </xsl:template>
+
+	<!--RULE -->
+<xsl:template match="/a:model/a:elements/a:element[matches(string(a:name), '&lt;&lt;[ \t]*eira:.+[ \t]*>>.+') and (let $declaredAbbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:') return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier) and starts-with(string(a:value), 'eira:')] and string(a:name) = $declaredAbbName and (let $abbElementId := string(@identifier) return exists(document('eira/EIRA.xml')/a:model/a:organizations//a:item[string(a:label) = 'Organisational View Concepts']/a:item[string(@identifierRef) = $abbElementId]))]))]" mode="M6" priority="1012">
+    <svrl:fired-rule context="/a:model/a:elements/a:element[matches(string(a:name), '&lt;&lt;[ \t]*eira:.+[ \t]*>>.+') and (let $declaredAbbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:') return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier) and starts-with(string(a:value), 'eira:')] and string(a:name) = $declaredAbbName and (let $abbElementId := string(@identifier) return exists(document('eira/EIRA.xml')/a:model/a:organizations//a:item[string(a:label) = 'Organisational View Concepts']/a:item[string(@identifierRef) = $abbElementId]))]))]" />
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="let $elementId := string(@identifier) return exists(/a:model/a:views/a:diagrams/a:view[string(a:name) = 'Organisational view']//a:node[string(@elementRef) = $elementId])" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="let $elementId := string(@identifier) return exists(/a:model/a:views/a:diagrams/a:view[string(a:name) = 'Organisational view']//a:node[string(@elementRef) = $elementId])">
+          <xsl:attribute name="id">EIRA-012</xsl:attribute>
+          <xsl:attribute name="flag">fatal</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-012] SBB '<xsl:text />
+            <xsl:value-of select="normalize-space(substring-after(string(a:name), '>>'))" />
+            <xsl:text />' (<xsl:text />
+            <xsl:value-of select="substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:')" />
+            <xsl:text />) is not present in the model's Organisational view.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:apply-templates mode="M6" select="*" />
+  </xsl:template>
+
+	<!--RULE -->
+<xsl:template match="/a:model/a:elements/a:element[matches(string(a:name), '&lt;&lt;[ \t]*eira:.+[ \t]*>>.+') and (let $declaredAbbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:') return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier) and starts-with(string(a:value), 'eira:')] and string(a:name) = $declaredAbbName and (let $abbElementId := string(@identifier) return exists(document('eira/EIRA.xml')/a:model/a:organizations//a:item[string(a:label) = 'Semantic View Concepts']/a:item[string(@identifierRef) = $abbElementId]))]))]" mode="M6" priority="1011">
+    <svrl:fired-rule context="/a:model/a:elements/a:element[matches(string(a:name), '&lt;&lt;[ \t]*eira:.+[ \t]*>>.+') and (let $declaredAbbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:') return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier) and starts-with(string(a:value), 'eira:')] and string(a:name) = $declaredAbbName and (let $abbElementId := string(@identifier) return exists(document('eira/EIRA.xml')/a:model/a:organizations//a:item[string(a:label) = 'Semantic View Concepts']/a:item[string(@identifierRef) = $abbElementId]))]))]" />
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="let $elementId := string(@identifier) return exists(/a:model/a:views/a:diagrams/a:view[string(a:name) = 'Semantic view']//a:node[string(@elementRef) = $elementId])" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="let $elementId := string(@identifier) return exists(/a:model/a:views/a:diagrams/a:view[string(a:name) = 'Semantic view']//a:node[string(@elementRef) = $elementId])">
+          <xsl:attribute name="id">EIRA-013</xsl:attribute>
+          <xsl:attribute name="flag">fatal</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-013] SBB '<xsl:text />
+            <xsl:value-of select="normalize-space(substring-after(string(a:name), '>>'))" />
+            <xsl:text />' (<xsl:text />
+            <xsl:value-of select="substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:')" />
+            <xsl:text />) is not present in the model's Semantic view.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:apply-templates mode="M6" select="*" />
+  </xsl:template>
+
+	<!--RULE -->
+<xsl:template match="/a:model/a:elements/a:element[matches(string(a:name), '&lt;&lt;[ \t]*eira:.+[ \t]*>>.+') and (let $declaredAbbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:') return (not($declaredAbbName = 'Technical Interoperability Specification' or $declaredAbbName = 'Technical Specification' or $declaredAbbName = 'Interoperability Specification' or $declaredAbbName = 'Solution Specification') and exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier) and starts-with(string(a:value), 'eira:')] and string(a:name) = $declaredAbbName and (let $abbElementId := string(@identifier) return exists(document('eira/EIRA.xml')/a:model/a:organizations//a:item[string(a:label) = 'Technical View Concepts' or string(a:label) = 'Technical View - Application Concepts']/a:item[string(@identifierRef) = $abbElementId]))])))]" mode="M6" priority="1010">
+    <svrl:fired-rule context="/a:model/a:elements/a:element[matches(string(a:name), '&lt;&lt;[ \t]*eira:.+[ \t]*>>.+') and (let $declaredAbbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:') return (not($declaredAbbName = 'Technical Interoperability Specification' or $declaredAbbName = 'Technical Specification' or $declaredAbbName = 'Interoperability Specification' or $declaredAbbName = 'Solution Specification') and exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier) and starts-with(string(a:value), 'eira:')] and string(a:name) = $declaredAbbName and (let $abbElementId := string(@identifier) return exists(document('eira/EIRA.xml')/a:model/a:organizations//a:item[string(a:label) = 'Technical View Concepts' or string(a:label) = 'Technical View - Application Concepts']/a:item[string(@identifierRef) = $abbElementId]))])))]" />
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="let $elementId := string(@identifier) return exists(/a:model/a:views/a:diagrams/a:view[string(a:name) = 'Technical view - application']//a:node[string(@elementRef) = $elementId])" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="let $elementId := string(@identifier) return exists(/a:model/a:views/a:diagrams/a:view[string(a:name) = 'Technical view - application']//a:node[string(@elementRef) = $elementId])">
+          <xsl:attribute name="id">EIRA-014</xsl:attribute>
+          <xsl:attribute name="flag">fatal</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-014] SBB '<xsl:text />
+            <xsl:value-of select="normalize-space(substring-after(string(a:name), '>>'))" />
+            <xsl:text />' (<xsl:text />
+            <xsl:value-of select="substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:')" />
+            <xsl:text />) is not present in the model's Technical view - application.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:apply-templates mode="M6" select="*" />
+  </xsl:template>
+
+	<!--RULE -->
+<xsl:template match="/a:model/a:elements/a:element[matches(string(a:name), '&lt;&lt;[ \t]*eira:.+[ \t]*>>.+') and (let $declaredAbbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:') return (not($declaredAbbName = 'Technical Interoperability Specification' or $declaredAbbName = 'Technical Specification' or $declaredAbbName = 'Interoperability Specification' or $declaredAbbName = 'Solution Specification') and exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier) and starts-with(string(a:value), 'eira:')] and string(a:name) = $declaredAbbName and (let $abbElementId := string(@identifier) return exists(document('eira/EIRA.xml')/a:model/a:organizations//a:item[string(a:label) = 'Technical View - Infrastructure Concepts']/a:item[string(@identifierRef) = $abbElementId]))])))]" mode="M6" priority="1009">
+    <svrl:fired-rule context="/a:model/a:elements/a:element[matches(string(a:name), '&lt;&lt;[ \t]*eira:.+[ \t]*>>.+') and (let $declaredAbbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:') return (not($declaredAbbName = 'Technical Interoperability Specification' or $declaredAbbName = 'Technical Specification' or $declaredAbbName = 'Interoperability Specification' or $declaredAbbName = 'Solution Specification') and exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier) and starts-with(string(a:value), 'eira:')] and string(a:name) = $declaredAbbName and (let $abbElementId := string(@identifier) return exists(document('eira/EIRA.xml')/a:model/a:organizations//a:item[string(a:label) = 'Technical View - Infrastructure Concepts']/a:item[string(@identifierRef) = $abbElementId]))])))]" />
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="let $elementId := string(@identifier) return exists(/a:model/a:views/a:diagrams/a:view[string(a:name) = 'Technical view - infrastructure']//a:node[string(@elementRef) = $elementId])" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="let $elementId := string(@identifier) return exists(/a:model/a:views/a:diagrams/a:view[string(a:name) = 'Technical view - infrastructure']//a:node[string(@elementRef) = $elementId])">
+          <xsl:attribute name="id">EIRA-015</xsl:attribute>
+          <xsl:attribute name="flag">fatal</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-015] SBB '<xsl:text />
+            <xsl:value-of select="normalize-space(substring-after(string(a:name), '>>'))" />
+            <xsl:text />' (<xsl:text />
+            <xsl:value-of select="substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:')" />
+            <xsl:text />) is not present in the model's Technical view - infrastructure.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:apply-templates mode="M6" select="*" />
+  </xsl:template>
+
+	<!--RULE -->
+<xsl:template match="/a:model/a:elements/a:element[matches(string(a:name), '&lt;&lt;[ \t]*eira:.+[ \t]*>>.+') and (let $declaredAbbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:') return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier) and starts-with(string(a:value), 'eira:')] and string(a:name) = $declaredAbbName and (let $abbElementId := string(@identifier) return exists(document('eira/EIRA.xml')/a:model/a:organizations//a:item[string(a:label) = 'Architectural Principles Concepts']/a:item[string(@identifierRef) = $abbElementId]))]))]" mode="M6" priority="1008">
+    <svrl:fired-rule context="/a:model/a:elements/a:element[matches(string(a:name), '&lt;&lt;[ \t]*eira:.+[ \t]*>>.+') and (let $declaredAbbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:') return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier) and starts-with(string(a:value), 'eira:')] and string(a:name) = $declaredAbbName and (let $abbElementId := string(@identifier) return exists(document('eira/EIRA.xml')/a:model/a:organizations//a:item[string(a:label) = 'Architectural Principles Concepts']/a:item[string(@identifierRef) = $abbElementId]))]))]" />
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="let $elementId := string(@identifier) return exists(/a:model/a:views/a:diagrams/a:view[string(a:name) = 'Architectural Principles view']//a:node[string(@elementRef) = $elementId])" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="let $elementId := string(@identifier) return exists(/a:model/a:views/a:diagrams/a:view[string(a:name) = 'Architectural Principles view']//a:node[string(@elementRef) = $elementId])">
+          <xsl:attribute name="id">EIRA-016</xsl:attribute>
+          <xsl:attribute name="flag">fatal</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-016] SBB '<xsl:text />
+            <xsl:value-of select="normalize-space(substring-after(string(a:name), '>>'))" />
+            <xsl:text />' (<xsl:text />
+            <xsl:value-of select="substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:')" />
+            <xsl:text />) is not present in the model's Architectural Principles view.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:apply-templates mode="M6" select="*" />
+  </xsl:template>
+
+	<!--RULE -->
+<xsl:template match="/a:model/a:elements/a:element[matches(string(a:name), '&lt;&lt;[ \t]*eira:.+[ \t]*>>.+') and (let $declaredAbbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:') return ($declaredAbbName = 'Technical Interoperability Specification' or $declaredAbbName = 'Technical Specification' or $declaredAbbName = 'Interoperability Specification' or $declaredAbbName = 'Solution Specification'))]" mode="M6" priority="1007">
+    <svrl:fired-rule context="/a:model/a:elements/a:element[matches(string(a:name), '&lt;&lt;[ \t]*eira:.+[ \t]*>>.+') and (let $declaredAbbName := substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:') return ($declaredAbbName = 'Technical Interoperability Specification' or $declaredAbbName = 'Technical Specification' or $declaredAbbName = 'Interoperability Specification' or $declaredAbbName = 'Solution Specification'))]" />
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="let $elementId := string(@identifier) return exists(/a:model/a:views/a:diagrams/a:view[string(a:name) = 'Technical view - application' or string(a:name) = 'Technical view - infrastructure']//a:node[string(@elementRef) = $elementId])" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="let $elementId := string(@identifier) return exists(/a:model/a:views/a:diagrams/a:view[string(a:name) = 'Technical view - application' or string(a:name) = 'Technical view - infrastructure']//a:node[string(@elementRef) = $elementId])">
+          <xsl:attribute name="id">EIRA-017</xsl:attribute>
+          <xsl:attribute name="flag">fatal</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-017] SBB '<xsl:text />
+            <xsl:value-of select="normalize-space(substring-after(string(a:name), '>>'))" />
+            <xsl:text />' (<xsl:text />
+            <xsl:value-of select="substring-after(normalize-space(substring-before(normalize-space(substring-after(string(a:name), '&lt;&lt;')), '>>')), 'eira:')" />
+            <xsl:text />) is not present in one of the model's Technical views.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:apply-templates mode="M6" select="*" />
+  </xsl:template>
+
+	<!--RULE -->
+<xsl:template match="/a:model/a:elements/a:element[let $name := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier) and starts-with(string(a:value), 'eira:')] and string(a:name) = $name and (let $abbElementId := string(@identifier) return exists(document('eira/EIRA.xml')/a:model/a:organizations//a:item[string(a:label) = 'Legal View Concepts']/a:item[string(@identifierRef) = $abbElementId]))])]" mode="M6" priority="1006">
+    <svrl:fired-rule context="/a:model/a:elements/a:element[let $name := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier) and starts-with(string(a:value), 'eira:')] and string(a:name) = $name and (let $abbElementId := string(@identifier) return exists(document('eira/EIRA.xml')/a:model/a:organizations//a:item[string(a:label) = 'Legal View Concepts']/a:item[string(@identifierRef) = $abbElementId]))])]" />
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="let $elementId := string(@identifier) return exists(/a:model/a:views/a:diagrams/a:view[string(a:name) = 'Legal view']//a:node[string(@elementRef) = $elementId])" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="let $elementId := string(@identifier) return exists(/a:model/a:views/a:diagrams/a:view[string(a:name) = 'Legal view']//a:node[string(@elementRef) = $elementId])">
+          <xsl:attribute name="id">EIRA-029</xsl:attribute>
+          <xsl:attribute name="flag">fatal</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-029] ABB '<xsl:text />
+            <xsl:value-of select="normalize-space(string(a:name))" />
+            <xsl:text />' is not present in the model's Legal view.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:apply-templates mode="M6" select="*" />
+  </xsl:template>
+
+	<!--RULE -->
+<xsl:template match="/a:model/a:elements/a:element[let $name := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier) and starts-with(string(a:value), 'eira:')] and string(a:name) = $name and (let $abbElementId := string(@identifier) return exists(document('eira/EIRA.xml')/a:model/a:organizations//a:item[string(a:label) = 'Organisational View Concepts']/a:item[string(@identifierRef) = $abbElementId]))])]" mode="M6" priority="1005">
+    <svrl:fired-rule context="/a:model/a:elements/a:element[let $name := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier) and starts-with(string(a:value), 'eira:')] and string(a:name) = $name and (let $abbElementId := string(@identifier) return exists(document('eira/EIRA.xml')/a:model/a:organizations//a:item[string(a:label) = 'Organisational View Concepts']/a:item[string(@identifierRef) = $abbElementId]))])]" />
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="let $elementId := string(@identifier) return exists(/a:model/a:views/a:diagrams/a:view[string(a:name) = 'Organisational view']//a:node[string(@elementRef) = $elementId])" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="let $elementId := string(@identifier) return exists(/a:model/a:views/a:diagrams/a:view[string(a:name) = 'Organisational view']//a:node[string(@elementRef) = $elementId])">
+          <xsl:attribute name="id">EIRA-030</xsl:attribute>
+          <xsl:attribute name="flag">fatal</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-030] ABB '<xsl:text />
+            <xsl:value-of select="normalize-space(string(a:name))" />
+            <xsl:text />' is not present in the model's Organisational view.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:apply-templates mode="M6" select="*" />
+  </xsl:template>
+
+	<!--RULE -->
+<xsl:template match="/a:model/a:elements/a:element[let $name := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier) and starts-with(string(a:value), 'eira:')] and string(a:name) = $name and (let $abbElementId := string(@identifier) return exists(document('eira/EIRA.xml')/a:model/a:organizations//a:item[string(a:label) = 'Semantic View Concepts']/a:item[string(@identifierRef) = $abbElementId]))])]" mode="M6" priority="1004">
+    <svrl:fired-rule context="/a:model/a:elements/a:element[let $name := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier) and starts-with(string(a:value), 'eira:')] and string(a:name) = $name and (let $abbElementId := string(@identifier) return exists(document('eira/EIRA.xml')/a:model/a:organizations//a:item[string(a:label) = 'Semantic View Concepts']/a:item[string(@identifierRef) = $abbElementId]))])]" />
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="let $elementId := string(@identifier) return exists(/a:model/a:views/a:diagrams/a:view[string(a:name) = 'Semantic view']//a:node[string(@elementRef) = $elementId])" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="let $elementId := string(@identifier) return exists(/a:model/a:views/a:diagrams/a:view[string(a:name) = 'Semantic view']//a:node[string(@elementRef) = $elementId])">
+          <xsl:attribute name="id">EIRA-031</xsl:attribute>
+          <xsl:attribute name="flag">fatal</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-031] ABB '<xsl:text />
+            <xsl:value-of select="normalize-space(string(a:name))" />
+            <xsl:text />' is not present in the model's Semantic view.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:apply-templates mode="M6" select="*" />
+  </xsl:template>
+
+	<!--RULE -->
+<xsl:template match="/a:model/a:elements/a:element[let $name := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier) and starts-with(string(a:value), 'eira:')] and string(a:name) = $name and (let $abbElementId := string(@identifier) return exists(document('eira/EIRA.xml')/a:model/a:organizations//a:item[string(a:label) = 'Technical View - Application Concepts']/a:item[string(@identifierRef) = $abbElementId]))])]" mode="M6" priority="1003">
+    <svrl:fired-rule context="/a:model/a:elements/a:element[let $name := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier) and starts-with(string(a:value), 'eira:')] and string(a:name) = $name and (let $abbElementId := string(@identifier) return exists(document('eira/EIRA.xml')/a:model/a:organizations//a:item[string(a:label) = 'Technical View - Application Concepts']/a:item[string(@identifierRef) = $abbElementId]))])]" />
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="let $elementId := string(@identifier) return exists(/a:model/a:views/a:diagrams/a:view[string(a:name) = 'Technical view - application']//a:node[string(@elementRef) = $elementId])" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="let $elementId := string(@identifier) return exists(/a:model/a:views/a:diagrams/a:view[string(a:name) = 'Technical view - application']//a:node[string(@elementRef) = $elementId])">
+          <xsl:attribute name="id">EIRA-032</xsl:attribute>
+          <xsl:attribute name="flag">fatal</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-032] ABB '<xsl:text />
+            <xsl:value-of select="normalize-space(string(a:name))" />
+            <xsl:text />' is not present in the model's Technical view - application.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:apply-templates mode="M6" select="*" />
+  </xsl:template>
+
+	<!--RULE -->
+<xsl:template match="/a:model/a:elements/a:element[let $name := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier) and starts-with(string(a:value), 'eira:')] and string(a:name) = $name and (let $abbElementId := string(@identifier) return exists(document('eira/EIRA.xml')/a:model/a:organizations//a:item[string(a:label) = 'Technical View - Infrastructure Concepts']/a:item[string(@identifierRef) = $abbElementId]))])]" mode="M6" priority="1002">
+    <svrl:fired-rule context="/a:model/a:elements/a:element[let $name := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier) and starts-with(string(a:value), 'eira:')] and string(a:name) = $name and (let $abbElementId := string(@identifier) return exists(document('eira/EIRA.xml')/a:model/a:organizations//a:item[string(a:label) = 'Technical View - Infrastructure Concepts']/a:item[string(@identifierRef) = $abbElementId]))])]" />
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="let $elementId := string(@identifier) return exists(/a:model/a:views/a:diagrams/a:view[string(a:name) = 'Technical view - infrastructure']//a:node[string(@elementRef) = $elementId])" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="let $elementId := string(@identifier) return exists(/a:model/a:views/a:diagrams/a:view[string(a:name) = 'Technical view - infrastructure']//a:node[string(@elementRef) = $elementId])">
+          <xsl:attribute name="id">EIRA-033</xsl:attribute>
+          <xsl:attribute name="flag">fatal</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-033] ABB '<xsl:text />
+            <xsl:value-of select="normalize-space(string(a:name))" />
+            <xsl:text />' is not present in the model's Technical view - infrastructure.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:apply-templates mode="M6" select="*" />
+  </xsl:template>
+
+	<!--RULE -->
+<xsl:template match="/a:model/a:elements/a:element[let $name := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier) and starts-with(string(a:value), 'eira:')] and string(a:name) = $name and (let $abbElementId := string(@identifier) return exists(document('eira/EIRA.xml')/a:model/a:organizations//a:item[string(a:label) = 'Architectural Principles Concepts']/a:item[string(@identifierRef) = $abbElementId]))])]" mode="M6" priority="1001">
+    <svrl:fired-rule context="/a:model/a:elements/a:element[let $name := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier) and starts-with(string(a:value), 'eira:')] and string(a:name) = $name and (let $abbElementId := string(@identifier) return exists(document('eira/EIRA.xml')/a:model/a:organizations//a:item[string(a:label) = 'Architectural Principles Concepts']/a:item[string(@identifierRef) = $abbElementId]))])]" />
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="let $elementId := string(@identifier) return exists(/a:model/a:views/a:diagrams/a:view[string(a:name) = 'Architectural Principles view']//a:node[string(@elementRef) = $elementId])" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="let $elementId := string(@identifier) return exists(/a:model/a:views/a:diagrams/a:view[string(a:name) = 'Architectural Principles view']//a:node[string(@elementRef) = $elementId])">
+          <xsl:attribute name="id">EIRA-034</xsl:attribute>
+          <xsl:attribute name="flag">fatal</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-034] ABB '<xsl:text />
+            <xsl:value-of select="normalize-space(string(a:name))" />
+            <xsl:text />' is not present in the model's Architectural Principles view.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:apply-templates mode="M6" select="*" />
+  </xsl:template>
+
+	<!--RULE -->
+<xsl:template match="/a:model/a:elements/a:element[let $name := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier) and starts-with(string(a:value), 'eira:')] and string(a:name) = $name and (let $abbElementId := string(@identifier) return exists(document('eira/EIRA.xml')/a:model/a:organizations//a:item[string(a:label) = 'Technical View Concepts']/a:item[string(@identifierRef) = $abbElementId]))])]" mode="M6" priority="1000">
+    <svrl:fired-rule context="/a:model/a:elements/a:element[let $name := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier) and starts-with(string(a:value), 'eira:')] and string(a:name) = $name and (let $abbElementId := string(@identifier) return exists(document('eira/EIRA.xml')/a:model/a:organizations//a:item[string(a:label) = 'Technical View Concepts']/a:item[string(@identifierRef) = $abbElementId]))])]" />
+
+		<!--ASSERT -->
+<xsl:choose>
+      <xsl:when test="let $elementId := string(@identifier) return exists(/a:model/a:views/a:diagrams/a:view[string(a:name) = 'Technical view - application' or string(a:name) = 'Technical view - infrastructure']//a:node[string(@elementRef) = $elementId])" />
+      <xsl:otherwise>
+        <svrl:failed-assert test="let $elementId := string(@identifier) return exists(/a:model/a:views/a:diagrams/a:view[string(a:name) = 'Technical view - application' or string(a:name) = 'Technical view - infrastructure']//a:node[string(@elementRef) = $elementId])">
+          <xsl:attribute name="id">EIRA-035</xsl:attribute>
+          <xsl:attribute name="flag">fatal</xsl:attribute>
+          <xsl:attribute name="location">
+            <xsl:apply-templates mode="schematron-select-full-path" select="." />
+          </xsl:attribute>
+          <svrl:text>[EIRA-035] ABB '<xsl:text />
+            <xsl:value-of select="normalize-space(string(a:name))" />
+            <xsl:text />' is not present in one of the model's Technical views.</svrl:text>
+        </svrl:failed-assert>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:apply-templates mode="M6" select="*" />
+  </xsl:template>
+  <xsl:template match="text()" mode="M6" priority="-1" />
+  <xsl:template match="@*|node()" mode="M6" priority="-2">
+    <xsl:apply-templates mode="M6" select="*" />
+  </xsl:template>
+</xsl:stylesheet>

@@ -1,0 +1,13 @@
+version: '3.7'
+
+services:
+    eira-validator:
+      container_name: validator-test
+      image: isaitb/xml-validator:latest
+      restart: unless-stopped
+      volumes:
+      -  ./resources:/validator/resources/eira
+      environment:
+      -  validator.resourceRoot=/validator/resources/
+      ports:
+      - 8080:8080
