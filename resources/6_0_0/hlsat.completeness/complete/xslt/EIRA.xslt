@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <xsl:stylesheet xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:a="http://www.opengroup.org/xsd/archimate/3.0/" xmlns:iso="http://purl.oclc.org/dsdl/schematron" xmlns:saxon="http://saxon.sf.net/" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
 <!--Implementers: please note that overriding process-prolog or process-root is 
     the preferred method for meta-stylesheets to use where possible. -->
@@ -507,7 +507,7 @@
         </svrl:failed-assert>
       </xsl:otherwise>
     </xsl:choose>
-    <xsl:apply-templates mode="M5" select="*" />
+    <xsl:apply-templates mode="M5" select="@*|*" />
   </xsl:template>
 
 	<!--RULE -->
@@ -516,22 +516,22 @@
 
 		<!--ASSERT -->
 <xsl:choose>
-      <xsl:when test="every $sbbDeclaredAbbName in string(a:name), $elementType in string(@xsi:type) satisfies (let $abb := document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock'] and string(a:name) = $sbbDeclaredAbbName] return not(exists($abb)) or $abb/@xsi:type = $elementType)" />
+      <xsl:when test="every $sbbPuri in a:properties/a:property[@propertyDefinitionRef = /a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:PURI']/@identifier]/a:value satisfies (let $elementType := @xsi:type return(let $sbb := document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:SolutionBuildingBlock']][a:properties/a:property[@propertyDefinitionRef = /a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:PURI']/@identifier]/a:value = $sbbPuri] return ($sbb/@xsi:type = $elementType or not(exists($sbb)))))" />
       <xsl:otherwise>
-        <svrl:failed-assert test="every $sbbDeclaredAbbName in string(a:name), $elementType in string(@xsi:type) satisfies (let $abb := document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock'] and string(a:name) = $sbbDeclaredAbbName] return not(exists($abb)) or $abb/@xsi:type = $elementType)">
+        <svrl:failed-assert test="every $sbbPuri in a:properties/a:property[@propertyDefinitionRef = /a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:PURI']/@identifier]/a:value satisfies (let $elementType := @xsi:type return(let $sbb := document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:SolutionBuildingBlock']][a:properties/a:property[@propertyDefinitionRef = /a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:PURI']/@identifier]/a:value = $sbbPuri] return ($sbb/@xsi:type = $elementType or not(exists($sbb)))))">
           <xsl:attribute name="id">EIRA-003</xsl:attribute>
           <xsl:attribute name="flag">fatal</xsl:attribute>
           <xsl:attribute name="location">
             <xsl:apply-templates mode="schematron-select-full-path" select="." />
           </xsl:attribute>
           <svrl:text>[EIRA-003] SBB '<xsl:text />
-            <xsl:value-of select="string(a:name)" />
+            <xsl:value-of select="a:name" />
             <xsl:text />' (<xsl:text />
-            <xsl:value-of select="string(a:name)" />
+            <xsl:value-of select="let $sbbDeclaredAbb := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:ABB']/@identifier)]/a:value return(/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock']][a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier)]/a:value = $sbbDeclaredAbb]/a:name)" />
             <xsl:text />) has an invalid element type '<xsl:text />
-            <xsl:value-of select="string(@xsi:type)" />
+            <xsl:value-of select="@xsi:type" />
             <xsl:text />'. Expected element type '<xsl:text />
-            <xsl:value-of select="let $elementName := string(a:name) return string(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $elementName]/@xsi:type)" />
+            <xsl:value-of select="let $sbbPuri := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:PURI']/@identifier)]/a:value return(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:SolutionBuildingBlock']][a:properties/a:property[@propertyDefinitionRef = /a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:PURI']/@identifier]/a:value = $sbbPuri]/@xsi:type)" />
             <xsl:text />'.</svrl:text>
         </svrl:failed-assert>
       </xsl:otherwise>
@@ -548,9 +548,9 @@
             <xsl:apply-templates mode="schematron-select-full-path" select="." />
           </xsl:attribute>
           <svrl:text>[EIRA-004] SBB '<xsl:text />
-            <xsl:value-of select="string(a:name)" />
+            <xsl:value-of select="a:name" />
             <xsl:text />' references an invalid ABB. No ABB is defined for name '<xsl:text />
-            <xsl:value-of select="string(a:name)" />
+            <xsl:value-of select="a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:ABB']/@identifier)]/a:value" />
             <xsl:text />'.</svrl:text>
         </svrl:failed-assert>
       </xsl:otherwise>
@@ -567,9 +567,9 @@
             <xsl:apply-templates mode="schematron-select-full-path" select="." />
           </xsl:attribute>
           <svrl:text>[EIRA-005] SBB '<xsl:text />
-            <xsl:value-of select="string(a:name)" />
+            <xsl:value-of select="a:name" />
             <xsl:text />' (<xsl:text />
-            <xsl:value-of select="string(a:name)" />
+            <xsl:value-of select="let $sbbDeclaredAbb := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:ABB']/@identifier)]/a:value return(/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock']][a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier)]/a:value = $sbbDeclaredAbb]/a:name)" />
             <xsl:text />) is missing required attribute(s) [<xsl:text />
             <xsl:value-of select="let $sbbProperties := a:properties return (let $sbbPropertyDefinitions := /a:model/a:propertyDefinitions return (let $abbName := string(./a:name) return (document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[not(string(./a:name) = 'ID' or string(./a:name) = 'eira:ABB_Status' or string(./a:name) = 'eira:synonym' or string(./a:name) = 'eira:unit_in_DG' or string(./a:name) = 'dct:references' or string(./a:name) = 'eira:reuse_status' or string(./a:name) = 'eira:specific_policy_issue' or string(./a:name) = 'eira:operational_date' or string(./a:name) = 'dct:description' or string(./a:name) = 'eira:policy_area' or string(./a:name) = 'eira:owner' or string(./a:name) = 'eira:description' or string(./a:name) = 'eira:reusability_score' or string(./a:name) = 'eira:data_quality_level' or string(./a:name) = 'eira:data_quality_score' or string(./a:name) = 'eira:iop_level' or string(./a:name) = 'eira:iop_score' or string(./a:name) = 'eira:GovIS_ID' or string(./a:name) = 'eira:IES_category' or string(./a:name) = 'eira:importance_for_the_functioning_of_the_EU' or string(./a:name) = 'eira:actual_use' or string(./a:name) = 'eira:actual_reuse' or string(./a:name) = 'eira:view') and (let $propId := string(./@identifier) return (let $propName := string(./a:name) return (exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[string(./a:name) = $abbName]/a:properties/a:property[string(./@propertyDefinitionRef) = $propId and not(exists($sbbPropertyDefinitions/a:propertyDefinition[(let $modelPropId := string(./@identifier) return exists($sbbProperties/a:property[string(./@propertyDefinitionRef) = $modelPropId and normalize-space(string(./a:value)) != ''])) and string(./a:name) = $propName]))]))))])))/a:name/string(.)" />
             <xsl:text />].</svrl:text>
@@ -588,9 +588,9 @@
             <xsl:apply-templates mode="schematron-select-full-path" select="." />
           </xsl:attribute>
           <svrl:text>[EIRA-006] SBB '<xsl:text />
-            <xsl:value-of select="string(a:name)" />
+            <xsl:value-of select="a:name" />
             <xsl:text />' refers to obsolete ABB '<xsl:text />
-            <xsl:value-of select="string(a:name)" />
+            <xsl:value-of select="let $sbbDeclaredAbb := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:ABB']/@identifier)]/a:value return(/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock']][a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier)]/a:value = $sbbDeclaredAbb]/a:name)" />
             <xsl:text />'.</svrl:text>
         </svrl:failed-assert>
       </xsl:otherwise>
@@ -607,9 +607,9 @@
             <xsl:apply-templates mode="schematron-select-full-path" select="." />
           </xsl:attribute>
           <svrl:text>[EIRA-025] SBBs for the 'Interoperability Specification' ABB or one of its specialisations ('Legal', 'Organisational', 'Semantic' or 'Technical Interoperability Specification') are not allowed. SBB '<xsl:text />
-            <xsl:value-of select="string(a:name)" />
+            <xsl:value-of select="a:name" />
             <xsl:text />' (<xsl:text />
-            <xsl:value-of select="string(a:name)" />
+            <xsl:value-of select="let $sbbDeclaredAbb := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:ABB']/@identifier)]/a:value return(/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock']][a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier)]/a:value = $sbbDeclaredAbb]/a:name)" />
             <xsl:text />) must be removed.</svrl:text>
         </svrl:failed-assert>
       </xsl:otherwise>
@@ -626,9 +626,9 @@
             <xsl:apply-templates mode="schematron-select-full-path" select="." />
           </xsl:attribute>
           <svrl:text>[EIRA-026] Only legal view SBBs may be modeled (unless explicitly allowed). SBB '<xsl:text />
-            <xsl:value-of select="string(a:name)" />
+            <xsl:value-of select="a:name" />
             <xsl:text />' (<xsl:text />
-            <xsl:value-of select="string(a:name)" />
+            <xsl:value-of select="let $sbbDeclaredAbb := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:ABB']/@identifier)]/a:value return(/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock']][a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier)]/a:value = $sbbDeclaredAbb]/a:name)" />
             <xsl:text />) must be removed.</svrl:text>
         </svrl:failed-assert>
       </xsl:otherwise>
@@ -645,14 +645,14 @@
             <xsl:apply-templates mode="schematron-select-full-path" select="." />
           </xsl:attribute>
           <svrl:text>[EIRA-027] SBB '<xsl:text />
-            <xsl:value-of select="string(a:name)" />
+            <xsl:value-of select="a:name" />
             <xsl:text />' (<xsl:text />
-            <xsl:value-of select="string(a:name)" />
+            <xsl:value-of select="let $sbbDeclaredAbb := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:ABB']/@identifier)]/a:value return(/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock']][a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier)]/a:value = $sbbDeclaredAbb]/a:name)" />
             <xsl:text />) should be aggregated by an Interoperability Aspect SBB.</svrl:text>
         </svrl:failed-assert>
       </xsl:otherwise>
     </xsl:choose>
-    <xsl:apply-templates mode="M5" select="*" />
+    <xsl:apply-templates mode="M5" select="@*|*" />
   </xsl:template>
 
 	<!--RULE -->
@@ -661,25 +661,25 @@
 
 		<!--ASSERT -->
 <xsl:choose>
-      <xsl:when test="every $elementName in string(a:name), $elementType in string(@xsi:type) satisfies ($elementType = string(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock'] and string(a:name) = $elementName]/@xsi:type))" />
+      <xsl:when test="every $abbPuri in a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:PURI']/@identifier)]/a:value satisfies (let $elementType := @xsi:type return(let $abb := document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock']][a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:PURI']/@identifier)]/a:value = $abbPuri] return ($abb/@xsi:type = $elementType or not(exists($abb)))))" />
       <xsl:otherwise>
-        <svrl:failed-assert test="every $elementName in string(a:name), $elementType in string(@xsi:type) satisfies ($elementType = string(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock'] and string(a:name) = $elementName]/@xsi:type))">
+        <svrl:failed-assert test="every $abbPuri in a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:PURI']/@identifier)]/a:value satisfies (let $elementType := @xsi:type return(let $abb := document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock']][a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:PURI']/@identifier)]/a:value = $abbPuri] return ($abb/@xsi:type = $elementType or not(exists($abb)))))">
           <xsl:attribute name="id">EIRA-008</xsl:attribute>
           <xsl:attribute name="flag">fatal</xsl:attribute>
           <xsl:attribute name="location">
             <xsl:apply-templates mode="schematron-select-full-path" select="." />
           </xsl:attribute>
           <svrl:text>[EIRA-008] ABB '<xsl:text />
-            <xsl:value-of select="string(a:name)" />
+            <xsl:value-of select="a:name" />
             <xsl:text />' defined with element type '<xsl:text />
-            <xsl:value-of select="string(@xsi:type)" />
+            <xsl:value-of select="@xsi:type" />
             <xsl:text />' that does not match the EIRA. Expected element type '<xsl:text />
-            <xsl:value-of select="let $elementName := string(a:name) return string(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $elementName]/@xsi:type)" />
+            <xsl:value-of select="let $abbPuri := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:PURI']/@identifier)]/a:value return (document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock']][a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:Puri']/@identifier)]/a:value = $abbPuri]/@xsi:type)" />
             <xsl:text />'.</svrl:text>
         </svrl:failed-assert>
       </xsl:otherwise>
     </xsl:choose>
-    <xsl:apply-templates mode="M5" select="*" />
+    <xsl:apply-templates mode="M5" select="@*|*" />
   </xsl:template>
 
 	<!--RULE -->
@@ -754,25 +754,25 @@
         </svrl:failed-assert>
       </xsl:otherwise>
     </xsl:choose>
-    <xsl:apply-templates mode="M5" select="*" />
+    <xsl:apply-templates mode="M5" select="@*|*" />
   </xsl:template>
   <xsl:template match="text()" mode="M5" priority="-1" />
   <xsl:template match="@*|node()" mode="M5" priority="-2">
-    <xsl:apply-templates mode="M5" select="*" />
+    <xsl:apply-templates mode="M5" select="@*|*" />
   </xsl:template>
 
 <!--PATTERN MEF-Step.02-->
 
 
 	<!--RULE -->
-<xsl:template match="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:SolutionBuildingBlock'] and (let $declaredAbbName := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Legal view'))]))]" mode="M6" priority="1011">
-    <svrl:fired-rule context="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:SolutionBuildingBlock'] and (let $declaredAbbName := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Legal view'))]))]" />
+<xsl:template match="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:SolutionBuildingBlock'] and (let $declaredAbbName := a:name return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Legal view'))]))]" mode="M6" priority="1011">
+    <svrl:fired-rule context="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:SolutionBuildingBlock'] and (let $declaredAbbName := a:name return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Legal view'))]))]" />
 
 		<!--ASSERT -->
 <xsl:choose>
-      <xsl:when test="let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Legal view')" />
+      <xsl:when test="let $viewName := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Legal view')" />
       <xsl:otherwise>
-        <svrl:failed-assert test="let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Legal view')">
+        <svrl:failed-assert test="let $viewName := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Legal view')">
           <xsl:attribute name="id">EIRA-011</xsl:attribute>
           <xsl:attribute name="flag">fatal</xsl:attribute>
           <xsl:attribute name="location">
@@ -786,18 +786,18 @@
         </svrl:failed-assert>
       </xsl:otherwise>
     </xsl:choose>
-    <xsl:apply-templates mode="M6" select="*" />
+    <xsl:apply-templates mode="M6" select="@*|*" />
   </xsl:template>
 
 	<!--RULE -->
-<xsl:template match="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:SolutionBuildingBlock'] and (let $declaredAbbName := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Organisational view'))]))]" mode="M6" priority="1010">
-    <svrl:fired-rule context="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:SolutionBuildingBlock'] and (let $declaredAbbName := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Organisational view'))]))]" />
+<xsl:template match="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:SolutionBuildingBlock'] and (let $declaredAbbName := a:name return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Organisational view'))]))]" mode="M6" priority="1010">
+    <svrl:fired-rule context="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:SolutionBuildingBlock'] and (let $declaredAbbName := a:name return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Organisational view'))]))]" />
 
 		<!--ASSERT -->
 <xsl:choose>
-      <xsl:when test="let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Organisational view')" />
+      <xsl:when test="let $viewName := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Organisational view')" />
       <xsl:otherwise>
-        <svrl:failed-assert test="let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Organisational view')">
+        <svrl:failed-assert test="let $viewName := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Organisational view')">
           <xsl:attribute name="id">EIRA-012</xsl:attribute>
           <xsl:attribute name="flag">fatal</xsl:attribute>
           <xsl:attribute name="location">
@@ -811,18 +811,18 @@
         </svrl:failed-assert>
       </xsl:otherwise>
     </xsl:choose>
-    <xsl:apply-templates mode="M6" select="*" />
+    <xsl:apply-templates mode="M6" select="@*|*" />
   </xsl:template>
 
 	<!--RULE -->
-<xsl:template match="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:SolutionBuildingBlock'] and (let $declaredAbbName := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Semantic view'))]))]" mode="M6" priority="1009">
-    <svrl:fired-rule context="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:SolutionBuildingBlock'] and (let $declaredAbbName := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Semantic view'))]))]" />
+<xsl:template match="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:SolutionBuildingBlock'] and (let $declaredAbbName := a:name return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Semantic view'))]))]" mode="M6" priority="1009">
+    <svrl:fired-rule context="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:SolutionBuildingBlock'] and (let $declaredAbbName := a:name return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Semantic view'))]))]" />
 
 		<!--ASSERT -->
 <xsl:choose>
-      <xsl:when test="let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Semantic view')" />
+      <xsl:when test="let $viewName := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Semantic view')" />
       <xsl:otherwise>
-        <svrl:failed-assert test="let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Semantic view')">
+        <svrl:failed-assert test="let $viewName := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Semantic view')">
           <xsl:attribute name="id">EIRA-013</xsl:attribute>
           <xsl:attribute name="flag">fatal</xsl:attribute>
           <xsl:attribute name="location">
@@ -836,18 +836,18 @@
         </svrl:failed-assert>
       </xsl:otherwise>
     </xsl:choose>
-    <xsl:apply-templates mode="M6" select="*" />
+    <xsl:apply-templates mode="M6" select="@*|*" />
   </xsl:template>
 
 	<!--RULE -->
-<xsl:template match="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:SolutionBuildingBlock'] and (let $declaredAbbName := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Technical view - application'))]))]" mode="M6" priority="1008">
-    <svrl:fired-rule context="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:SolutionBuildingBlock'] and (let $declaredAbbName := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Technical view - application'))]))]" />
+<xsl:template match="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:SolutionBuildingBlock'] and (let $declaredAbbName := a:name return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Technical view - application'))]))]" mode="M6" priority="1008">
+    <svrl:fired-rule context="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:SolutionBuildingBlock'] and (let $declaredAbbName := a:name return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Technical view - application'))]))]" />
 
 		<!--ASSERT -->
 <xsl:choose>
-      <xsl:when test="let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Technical view - application')" />
+      <xsl:when test="let $viewName := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Technical view - application')" />
       <xsl:otherwise>
-        <svrl:failed-assert test="let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Technical view - application')">
+        <svrl:failed-assert test="let $viewName := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Technical view - application')">
           <xsl:attribute name="id">EIRA-014</xsl:attribute>
           <xsl:attribute name="flag">fatal</xsl:attribute>
           <xsl:attribute name="location">
@@ -861,18 +861,18 @@
         </svrl:failed-assert>
       </xsl:otherwise>
     </xsl:choose>
-    <xsl:apply-templates mode="M6" select="*" />
+    <xsl:apply-templates mode="M6" select="@*|*" />
   </xsl:template>
 
 	<!--RULE -->
-<xsl:template match="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:SolutionBuildingBlock'] and (let $declaredAbbName := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Technical view - infrastructure'))]))]" mode="M6" priority="1007">
-    <svrl:fired-rule context="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:SolutionBuildingBlock'] and (let $declaredAbbName := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Technical view - infrastructure'))]))]" />
+<xsl:template match="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:SolutionBuildingBlock'] and (let $declaredAbbName := a:name return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Technical view - infrastructure'))]))]" mode="M6" priority="1007">
+    <svrl:fired-rule context="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:SolutionBuildingBlock'] and (let $declaredAbbName := a:name return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Technical view - infrastructure'))]))]" />
 
 		<!--ASSERT -->
 <xsl:choose>
-      <xsl:when test="let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Technical view - infrastructure')" />
+      <xsl:when test="let $viewName := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Technical view - infrastructure')" />
       <xsl:otherwise>
-        <svrl:failed-assert test="let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Technical view - infrastructure')">
+        <svrl:failed-assert test="let $viewName := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Technical view - infrastructure')">
           <xsl:attribute name="id">EIRA-015</xsl:attribute>
           <xsl:attribute name="flag">fatal</xsl:attribute>
           <xsl:attribute name="location">
@@ -886,18 +886,18 @@
         </svrl:failed-assert>
       </xsl:otherwise>
     </xsl:choose>
-    <xsl:apply-templates mode="M6" select="*" />
+    <xsl:apply-templates mode="M6" select="@*|*" />
   </xsl:template>
 
 	<!--RULE -->
-<xsl:template match="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:SolutionBuildingBlock'] and (let $declaredAbbName := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Technical view - application' or $viewName = 'Technical view - infrastructure'))]))]" mode="M6" priority="1006">
-    <svrl:fired-rule context="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:SolutionBuildingBlock'] and (let $declaredAbbName := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Technical view - application' or $viewName = 'Technical view - infrastructure'))]))]" />
+<xsl:template match="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:SolutionBuildingBlock'] and (let $declaredAbbName := a:name return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Technical view - application' or $viewName = 'Technical view - infrastructure'))]))]" mode="M6" priority="1006">
+    <svrl:fired-rule context="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:SolutionBuildingBlock'] and (let $declaredAbbName := a:name return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Technical view - application' or $viewName = 'Technical view - infrastructure'))]))]" />
 
 		<!--ASSERT -->
 <xsl:choose>
-      <xsl:when test="let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Technical view - application' or $viewName = 'Technical view - infrastructure')" />
+      <xsl:when test="let $viewName := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Technical view - application' or $viewName = 'Technical view - infrastructure')" />
       <xsl:otherwise>
-        <svrl:failed-assert test="let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Technical view - application' or $viewName = 'Technical view - infrastructure')">
+        <svrl:failed-assert test="let $viewName := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Technical view - application' or $viewName = 'Technical view - infrastructure')">
           <xsl:attribute name="id">EIRA-017</xsl:attribute>
           <xsl:attribute name="flag">fatal</xsl:attribute>
           <xsl:attribute name="location">
@@ -911,18 +911,18 @@
         </svrl:failed-assert>
       </xsl:otherwise>
     </xsl:choose>
-    <xsl:apply-templates mode="M6" select="*" />
+    <xsl:apply-templates mode="M6" select="@*|*" />
   </xsl:template>
 
 	<!--RULE -->
-<xsl:template match="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock'] and (let $declaredAbbName := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Legal view'))]))]" mode="M6" priority="1005">
-    <svrl:fired-rule context="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock'] and (let $declaredAbbName := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Legal view'))]))]" />
+<xsl:template match="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock'] and (let $declaredAbbName := a:name return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Legal view'))]))]" mode="M6" priority="1005">
+    <svrl:fired-rule context="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock'] and (let $declaredAbbName := a:name return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Legal view'))]))]" />
 
 		<!--ASSERT -->
 <xsl:choose>
-      <xsl:when test="let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Legal view')" />
+      <xsl:when test="let $viewName := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Legal view')" />
       <xsl:otherwise>
-        <svrl:failed-assert test="let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Legal view')">
+        <svrl:failed-assert test="let $viewName := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Legal view')">
           <xsl:attribute name="id">EIRA-029</xsl:attribute>
           <xsl:attribute name="flag">fatal</xsl:attribute>
           <xsl:attribute name="location">
@@ -934,18 +934,18 @@
         </svrl:failed-assert>
       </xsl:otherwise>
     </xsl:choose>
-    <xsl:apply-templates mode="M6" select="*" />
+    <xsl:apply-templates mode="M6" select="@*|*" />
   </xsl:template>
 
 	<!--RULE -->
-<xsl:template match="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock'] and (let $declaredAbbName := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Organisational view'))]))]" mode="M6" priority="1004">
-    <svrl:fired-rule context="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock'] and (let $declaredAbbName := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Organisational view'))]))]" />
+<xsl:template match="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock'] and (let $declaredAbbName := a:name return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Organisational view'))]))]" mode="M6" priority="1004">
+    <svrl:fired-rule context="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock'] and (let $declaredAbbName := a:name return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Organisational view'))]))]" />
 
 		<!--ASSERT -->
 <xsl:choose>
-      <xsl:when test="let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Organisational view')" />
+      <xsl:when test="let $viewName := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Organisational view')" />
       <xsl:otherwise>
-        <svrl:failed-assert test="let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Organisational view')">
+        <svrl:failed-assert test="let $viewName := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Organisational view')">
           <xsl:attribute name="id">EIRA-030</xsl:attribute>
           <xsl:attribute name="flag">fatal</xsl:attribute>
           <xsl:attribute name="location">
@@ -957,18 +957,18 @@
         </svrl:failed-assert>
       </xsl:otherwise>
     </xsl:choose>
-    <xsl:apply-templates mode="M6" select="*" />
+    <xsl:apply-templates mode="M6" select="@*|*" />
   </xsl:template>
 
 	<!--RULE -->
-<xsl:template match="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock'] and (let $declaredAbbName := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Semantic view'))]))]" mode="M6" priority="1003">
-    <svrl:fired-rule context="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock'] and (let $declaredAbbName := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Semantic view'))]))]" />
+<xsl:template match="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock'] and (let $declaredAbbName := a:name return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Semantic view'))]))]" mode="M6" priority="1003">
+    <svrl:fired-rule context="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock'] and (let $declaredAbbName := a:name return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Semantic view'))]))]" />
 
 		<!--ASSERT -->
 <xsl:choose>
-      <xsl:when test="let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Semantic view')" />
+      <xsl:when test="let $viewName := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Semantic view')" />
       <xsl:otherwise>
-        <svrl:failed-assert test="let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Semantic view')">
+        <svrl:failed-assert test="let $viewName := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Semantic view')">
           <xsl:attribute name="id">EIRA-031</xsl:attribute>
           <xsl:attribute name="flag">fatal</xsl:attribute>
           <xsl:attribute name="location">
@@ -980,18 +980,18 @@
         </svrl:failed-assert>
       </xsl:otherwise>
     </xsl:choose>
-    <xsl:apply-templates mode="M6" select="*" />
+    <xsl:apply-templates mode="M6" select="@*|*" />
   </xsl:template>
 
 	<!--RULE -->
-<xsl:template match="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock'] and (let $declaredAbbName := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Technical view - application'))]))]" mode="M6" priority="1002">
-    <svrl:fired-rule context="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock'] and (let $declaredAbbName := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Technical view - application'))]))]" />
+<xsl:template match="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock'] and (let $declaredAbbName := a:name return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Technical view - application'))]))]" mode="M6" priority="1002">
+    <svrl:fired-rule context="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock'] and (let $declaredAbbName := a:name return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Technical view - application'))]))]" />
 
 		<!--ASSERT -->
 <xsl:choose>
-      <xsl:when test="let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Technical view - application')" />
+      <xsl:when test="let $viewName := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Technical view - application')" />
       <xsl:otherwise>
-        <svrl:failed-assert test="let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Technical view - application')">
+        <svrl:failed-assert test="let $viewName := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Technical view - application')">
           <xsl:attribute name="id">EIRA-032</xsl:attribute>
           <xsl:attribute name="flag">fatal</xsl:attribute>
           <xsl:attribute name="location">
@@ -1003,18 +1003,18 @@
         </svrl:failed-assert>
       </xsl:otherwise>
     </xsl:choose>
-    <xsl:apply-templates mode="M6" select="*" />
+    <xsl:apply-templates mode="M6" select="@*|*" />
   </xsl:template>
 
 	<!--RULE -->
-<xsl:template match="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock'] and (let $declaredAbbName := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Technical view - infrastructure'))]))]" mode="M6" priority="1001">
-    <svrl:fired-rule context="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock'] and (let $declaredAbbName := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Technical view - infrastructure'))]))]" />
+<xsl:template match="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock'] and (let $declaredAbbName := a:name return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Technical view - infrastructure'))]))]" mode="M6" priority="1001">
+    <svrl:fired-rule context="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock'] and (let $declaredAbbName := a:name return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Technical view - infrastructure'))]))]" />
 
 		<!--ASSERT -->
 <xsl:choose>
-      <xsl:when test="let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Technical view - infrastructure')" />
+      <xsl:when test="let $viewName := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Technical view - infrastructure')" />
       <xsl:otherwise>
-        <svrl:failed-assert test="let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Technical view - infrastructure')">
+        <svrl:failed-assert test="let $viewName := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Technical view - infrastructure')">
           <xsl:attribute name="id">EIRA-033</xsl:attribute>
           <xsl:attribute name="flag">fatal</xsl:attribute>
           <xsl:attribute name="location">
@@ -1026,18 +1026,18 @@
         </svrl:failed-assert>
       </xsl:otherwise>
     </xsl:choose>
-    <xsl:apply-templates mode="M6" select="*" />
+    <xsl:apply-templates mode="M6" select="@*|*" />
   </xsl:template>
 
 	<!--RULE -->
-<xsl:template match="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock'] and (let $declaredAbbName := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Technical view - application' or $viewName = 'Technical view - infrastructure'))]))]" mode="M6" priority="1000">
-    <svrl:fired-rule context="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock'] and (let $declaredAbbName := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Technical view - application' or $viewName = 'Technical view - infrastructure'))]))]" />
+<xsl:template match="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock'] and (let $declaredAbbName := a:name return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Technical view - application' or $viewName = 'Technical view - infrastructure'))]))]" mode="M6" priority="1000">
+    <svrl:fired-rule context="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock'] and (let $declaredAbbName := a:name return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:name = $declaredAbbName and (let $viewName := a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Technical view - application' or $viewName = 'Technical view - infrastructure'))]))]" />
 
 		<!--ASSERT -->
 <xsl:choose>
-      <xsl:when test="let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Technical view - application' or $viewName = 'Technical view - infrastructure')" />
+      <xsl:when test="let $viewName := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Technical view - application' or $viewName = 'Technical view - infrastructure')" />
       <xsl:otherwise>
-        <svrl:failed-assert test="let $viewName := string(a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value) return exists($viewName = 'Technical view - application' or $viewName = 'Technical view - infrastructure')">
+        <svrl:failed-assert test="let $viewName := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:view']/@identifier)]/a:value return exists($viewName = 'Technical view - application' or $viewName = 'Technical view - infrastructure')">
           <xsl:attribute name="id">EIRA-035</xsl:attribute>
           <xsl:attribute name="flag">fatal</xsl:attribute>
           <xsl:attribute name="location">
@@ -1049,10 +1049,10 @@
         </svrl:failed-assert>
       </xsl:otherwise>
     </xsl:choose>
-    <xsl:apply-templates mode="M6" select="*" />
+    <xsl:apply-templates mode="M6" select="@*|*" />
   </xsl:template>
   <xsl:template match="text()" mode="M6" priority="-1" />
   <xsl:template match="@*|node()" mode="M6" priority="-2">
-    <xsl:apply-templates mode="M6" select="*" />
+    <xsl:apply-templates mode="M6" select="@*|*" />
   </xsl:template>
 </xsl:stylesheet>

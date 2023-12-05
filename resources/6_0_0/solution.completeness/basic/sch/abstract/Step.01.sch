@@ -9,14 +9,14 @@
 	    <assert test="$EIRA-002" flag="warning" id="EIRA-002">[EIRA-002] The model is missing required attribute(s) [<value-of select="$MissingModelAttributeNames"/>].</assert>
 	</rule>
  	<rule context="$SolutionBuildingBlock">
-	    <assert test="$EIRA-003" flag="fatal" id="EIRA-003">[EIRA-003] SBB '<value-of select="$SBBName"/>' (<value-of select="$SBBDeclaredABBName"/>) has an invalid element type '<value-of select="$ElementType"/>'. Expected element type '<value-of select="$SBBEIRAElementType"/>'.</assert>
-	    <assert test="$EIRA-004" flag="fatal" id="EIRA-004">[EIRA-004] SBB '<value-of select="$SBBName"/>' references an invalid ABB. No ABB is defined for name '<value-of select="$SBBDeclaredABBName"/>'.</assert>
+		<assert test="$EIRA-003" flag="fatal" id="EIRA-003">[EIRA-003] SBB '<value-of select="$SBBName"/>' (<value-of select="$SBBDeclaredABBName"/>) has an invalid element type '<value-of select="$ElementType"/>'. Expected element type '<value-of select="$EIRASBBElementType"/>'.</assert>
+	    <assert test="$EIRA-004" flag="fatal" id="EIRA-004">[EIRA-004] SBB '<value-of select="$SBBName"/>' references an invalid ABB. No ABB is defined for name '<value-of select="$SBBDeclaredABBValue"/>'.</assert>
 	    <assert test="$EIRA-005" flag="warning" id="EIRA-005">[EIRA-005] SBB '<value-of select="$SBBName"/>' (<value-of select="$SBBDeclaredABBName"/>) is missing required attribute(s) [<value-of select="$MissingSBBAttributeNames"/>].</assert>
 	    <assert test="$EIRA-006" flag="warning" id="EIRA-006">[EIRA-006] SBB '<value-of select="$SBBName"/>' refers to obsolete ABB '<value-of select="$SBBDeclaredABBName"/>'.</assert>
  	</rule>
  	<rule context="$ArchitectureBuildingBlock">
 	    <assert test="$EIRA-007" flag="fatal" id="EIRA-007">[EIRA-007] An ABB ('<value-of select="$ABBName"/>') must not be defined in a solution.</assert>
-		<assert test="$EIRA-008" flag="fatal" id="EIRA-008">[EIRA-008] ABB '<value-of select="$ABBName"/>' defined with element type '<value-of select="$ElementType"/>' that does not match the EIRA. Expected element type '<value-of select="$EIRAElementType"/>'.</assert>
+		<assert test="$EIRA-008" flag="fatal" id="EIRA-008">[EIRA-008] ABB '<value-of select="$ABBName"/>' defined with element type '<value-of select="$ElementType"/>' that does not match the EIRA. Expected element type '<value-of select="$EIRAABBElementType"/>'.</assert>
 	</rule>
  	<rule context="$SBBPropertyDefinedInEIRA">
 	    <assert test="$EIRA-009" flag="warning" id="EIRA-009">[EIRA-009] SBB '<value-of select="$SBBPropertySBBName"/>' (<value-of select="$SBBPropertyDeclaredABBName"/>) defines invalid value '<value-of select="$SBBPropertyValue"/>' for attribute '<value-of select="$SBBPropertyName"/>'. Expected '<value-of select="$ABBExpectedPropertyValue"/>'.</assert>
