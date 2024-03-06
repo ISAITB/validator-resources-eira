@@ -539,9 +539,9 @@
 
 		<!--ASSERT -->
 <xsl:choose>
-      <xsl:when test="let $sbbName := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[string(a:name) = $sbbName])" />
+      <xsl:when test="let $sbbDeclaredAbbValue := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:ABB']/@identifier)]/a:value return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock']][a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier)]/a:value = $sbbDeclaredAbbValue])" />
       <xsl:otherwise>
-        <svrl:failed-assert test="let $sbbName := string(a:name) return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[string(a:name) = $sbbName])">
+        <svrl:failed-assert test="let $sbbDeclaredAbbValue := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:ABB']/@identifier)]/a:value return exists(document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock']][a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier)]/a:value = $sbbDeclaredAbbValue])">
           <xsl:attribute name="id">EIRA-004</xsl:attribute>
           <xsl:attribute name="flag">fatal</xsl:attribute>
           <xsl:attribute name="location">
