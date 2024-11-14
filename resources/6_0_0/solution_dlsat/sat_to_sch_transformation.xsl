@@ -21,8 +21,9 @@
     </xsl:function>
 
     <xsl:function name="eira:isAbbToIgnore" as="xs:boolean">
+        <xsl:param name="abbPuri"/>
         <xsl:param name="abbName"/>
-        <xsl:variable name="abb" select="eira:abbByName($abbName)"/>
+        <xsl:variable name="abb" select="eira:abbByName($abbPuri)"/>
         <!--
             Ignoring: (a) Motivation elements, (b) Conceptual elements, (c) Metamodel elements.
         -->
@@ -33,8 +34,9 @@
     </xsl:function>
 
     <xsl:function name="eira:isSbbToIgnore" as="xs:boolean">
-        <xsl:param name="stereotypedName"/>
-        <xsl:value-of select="eira:isAbbToIgnore(eira:abbFromStereotypedName($stereotypedName))"/>
+        <xsl:param name="sbbPuri"/>
+        <xsl:param name="sbbName"/>
+        <xsl:value-of select="eira:isAbbToIgnore($sbbPuri, $sbbName)"/>
     </xsl:function>
 
     <xsl:function name="eira:isSbb" as="xs:boolean">
@@ -102,9 +104,13 @@
     </xsl:function>
 
     <xsl:function name="eira:abbByName" as="element()">
-        <xsl:param name="abbName"/>
-        <!-- <xsl:message>CALLED WITH [<xsl:value-of select="$abbName"/>]</xsl:message> -->
-        <xsl:copy-of select="$eiraDoc/a:model/a:elements/a:element[a:name = $abbName]"/>
+        <xsl:param name="abbPuri"/>
+        <xsl:copy-of select="$eiraDoc/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string($eiraDoc/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:PURI']/@identifier) and a:value = $abbPuri]]"/>
+    </xsl:function>
+
+    <xsl:function name="eira:getPuri" as="xs:string">
+        <xsl:param name="element"/>
+        <xsl:copy-of select="$element/a:properties/a:property[@propertyDefinitionRef = string($eiraDoc/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:PURI']/@identifier)]/a:value"/>
     </xsl:function>
 
     <xsl:function name="eira:abbHasChildren" as="xs:boolean">
@@ -255,9 +261,9 @@ $doc/a:model/a:elements/a:element[
     </xsl:function>
 
     <xsl:function name="eira:equivalentAbbs" as="xs:string">
-        <xsl:param name="abbName"/>
+        <xsl:param name="abbPuri"/>
         <xsl:param name="separator"/>
-        <xsl:variable name="abb" select="eira:abbByName($abbName)"/>
+        <xsl:variable name="abb" select="eira:abbByName($abbPuri)"/>
         <xsl:choose>
             <xsl:when test="ends-with($abb/a:name, ' Service')">
                 <xsl:value-of select="eira:relatedAbbs($abb/@identifier, false(), 'Realization', $separator)"/>
@@ -317,7 +323,7 @@ $doc/a:model/a:elements/a:element[
                                 and (($specIdentifier = @target and $elementIdentifier = @source) or ($specIdentifier = @source and $elementIdentifier = @target))
                                 and (
                                     let $referedElement := eira:elementById($elementIdentifier) return (
-                                        eira:isSbb($referedElement/a:name) and not(eira:isSbbToIgnore($referedElement/a:name))
+                                        eira:isSbb($referedElement/a:name) and not(eira:isSbbToIgnore(eira:getPuri($referedElement), $referedElement/a:name))
                                     )
                                 )
                             ]
@@ -371,8 +377,9 @@ $doc/a:model/a:elements/a:element[
         "/>
     </xsl:function>
 
-    <xsl:function name="eira:allAbbEquivalentsAndChildren" as="xs:string">
+    <!-- <xsl:function name="eira:allAbbEquivalentsAndChildren" as="xs:string">
         <xsl:param name="abb"/>
+        <xsl:param name="type"/>
         <xsl:param name="separator"/>
         <xsl:variable name="abbHasChildren" select="eira:abbHasChildren($abb/a:name)"/>
         <xsl:variable name="allowedAbbNames" select="
@@ -384,9 +391,10 @@ $doc/a:model/a:elements/a:element[
         <xsl:variable name="allowedAbbNamesWithEquivalents">
             <xsl:for-each select="$allowedAbbNames">
                 <xsl:variable name="abbName" select="current()"/>
+                <xsl:variable name="type" select="eira:findAbbType($abbName)"/>
                 <xsl:value-of select="
-                    if (eira:abbHasEquivalents(eira:abbByName($abbName))) then
-                        concat($abbName, $separator, eira:equivalentAbbs($abbName, $separator), $separator)
+                    if (eira:abbHasEquivalents(eira:abbByName($abbName, $type))) then
+                        concat($abbName, $separator, eira:equivalentAbbs($abbName, $type, $separator), $separator)
                     else
                         concat($abbName, $separator)
                 "/>
@@ -396,7 +404,7 @@ $doc/a:model/a:elements/a:element[
             <xsl:value-of select="if (ends-with($allowedAbbNamesWithEquivalents, $separator)) then substring($allowedAbbNamesWithEquivalents, 0, string-length($allowedAbbNamesWithEquivalents) + 1 - string-length($separator)) else $allowedAbbNamesWithEquivalents"/>
         </xsl:variable>
         <xsl:value-of select="$allowedAbbNamesWithEquivalents"/>
-    </xsl:function>
+    </xsl:function> -->
 
     <xsl:function name="eira:sanitizeForQuery" as="xs:string">
         <xsl:param name="value"/>
@@ -430,11 +438,13 @@ $doc/a:model/a:elements/a:element[
                     <!-- Add an always successful assertion to avoid an invalid schematron if empty. -->
                     <assert id="EIRA-000" test="true()">Empty SAT</assert>
                     <!-- Predefined SBBs -->
-                    <xsl:for-each select="/a:model/a:elements/a:element[eira:isSbb(a:name) and not(eira:isSbbToIgnore(a:name)) and not(eira:isSpecification(.))]">
-                        <xsl:variable name="acceptedAbbs" select="eira:allAbbEquivalentsAndChildren(eira:abbByName(eira:abbFromStereotypedName(current()/a:name)), '|')"/>
+                    <xsl:for-each select="/a:model/a:elements/a:element[eira:isSbb(a:name) and not(eira:isSbbToIgnore(eira:getPuri(.), a:name)) and not(eira:isSpecification(.))]">
+                        <!-- <xsl:variable name="acceptedAbbs" select="eira:allAbbEquivalentsAndChildren(eira:abbByName(eira:abbFromStereotypedName(current()/a:name), current()/@xsi:type), current()/@xsi:type, '|')"/> -->
                         <xsl:variable name="sbbName" select="eira:sbbFromStereotypedName(current()/a:name)"/>
+                        <xsl:variable name="sbbPuri" select="eira:getPuri(current())"/>
                         <xsl:variable name="ruleId" select="'EIRA-038'"/>
-                        <assert id="{$ruleId}" test="exists(a:elements/a:element[let $abbName := string(a:name) return (let $sbbName := string(a:name) return ($sbbName = '{eira:sanitizeForQuery($sbbName)}' and ({eira:tokenStringToOr($acceptedAbbs, '|', '$abbName')})))])">[<xsl:value-of select="$ruleId"/>] [<xsl:value-of select="$satName"/>] SBB '<xsl:value-of select="eira:sbbFromStereotypedName(current()/a:name)"/>' for ABB '<xsl:value-of select="eira:abbFromStereotypedName(current()/a:name)"/>' is expected and must be included in the solution.</assert>
+                        <!-- <assert id="{$ruleId}" test="exists(a:elements/a:element[let $abbName := string(a:name) return (let $sbbName := string(a:name) return ($sbbName = '{eira:sanitizeForQuery($sbbName)}' and ({eira:tokenStringToOr($acceptedAbbs, '|', '$abbName')})))])">[<xsl:value-of select="$ruleId"/>] [<xsl:value-of select="$satName"/>] SBB '<xsl:value-of select="eira:sbbFromStereotypedName(current()/a:name)"/>' for ABB '<xsl:value-of select="eira:abbFromStereotypedName(current()/a:name)"/>' is expected and must be included in the solution.</assert> -->
+                        <assert id="{$ruleId}" test="exists(a:elements/a:element[let $abbName := string(a:name) return (let $sbbName := string(a:name) return ($sbbName = '{eira:sanitizeForQuery($sbbName)}'))])">[<xsl:value-of select="$ruleId"/>] [<xsl:value-of select="$satName"/>] SBB '<xsl:value-of select="eira:sbbFromStereotypedName(current()/a:name)"/>' for ABB '<xsl:value-of select="eira:abbFromStereotypedName(current()/a:name)"/>' is expected and must be included in the solution.</assert>
 <!--
 exists(
     a:elements/a:element[
@@ -449,23 +459,26 @@ exists(
 -->                        
                     </xsl:for-each>
                     <!-- ABBs -->
-                    <xsl:for-each select="/a:model/a:elements/a:element[eira:isAbb(a:name) and not(eira:isAbbToIgnore(a:name)) and not(eira:isSpecialisedByOtherAbb(.))]">
+                    <!-- <xsl:for-each select="/a:model/a:elements/a:element[eira:isAbb(a:name) and not(eira:isAbbToIgnore(a:name)) and not(eira:isSpecialisedByOtherAbb(.))]"> -->
+                    <xsl:for-each select="/a:model/a:elements/a:element[eira:isAbb(a:name) and not(eira:isSpecialisedByOtherAbb(.))]">
                         <xsl:variable name="abbName" select="current()/a:name"/>
-                        <xsl:variable name="acceptedAbbs" select="eira:allAbbEquivalentsAndChildren(eira:abbByName($abbName), '|')"/>
-                        <xsl:variable name="acceptedAbbsDisplay" select="replace($acceptedAbbs, '\|', ''', ''')"/>
-                        <xsl:variable name="hasMultipleAcceptedAbbs" select="$abbName != $acceptedAbbs"/>
+                        <xsl:variable name="type" select="current()/@xsi:type"/>
+                        <!-- <xsl:variable name="acceptedAbbs" select="eira:allAbbEquivalentsAndChildren(eira:abbByName($abbName, $type), $type, '|')"/> -->
+                        <!-- <xsl:variable name="acceptedAbbsDisplay" select="replace($acceptedAbbs, '\|', ''', ''')"/> -->
+                        <!-- <xsl:variable name="hasMultipleAcceptedAbbs" select="$abbName != $acceptedAbbs"/> -->
                         <xsl:variable name="ruleId" select="'EIRA-039'"/>
-                        <xsl:variable name="assertionMessage">
-                            <xsl:choose>
-                                <xsl:when test="$hasMultipleAcceptedAbbs">
+                        <xsl:variable name="assertionMessage" select="concat('[', $ruleId, '] [', $satName,'] An ABB ''', $abbName, ''' is defined that is not addressed in the solution. The solution must include an SBB for this ABB.')"/>
+                            <!-- <xsl:choose> -->
+                                <!-- <xsl:when test="$hasMultipleAcceptedAbbs">
                                     <xsl:value-of select="concat('[', $ruleId, '] [', $satName,'] An ABB ''', $abbName, ''' is defined that is not addressed in the solution. The solution must include an SBB for an appropriate ABB (''', $acceptedAbbsDisplay, ''').')"/>
-                                </xsl:when>
-                                <xsl:otherwise>
+                                </xsl:when> -->
+                                <!-- <xsl:otherwise>
                                     <xsl:value-of select="concat('[', $ruleId, '] [', $satName,'] An ABB ''', $abbName, ''' is defined that is not addressed in the solution. The solution must include an SBB for this ABB.')"/>
                                 </xsl:otherwise>
                             </xsl:choose>
-                        </xsl:variable>
-                        <assert id="{$ruleId}" test="exists(a:elements/a:element[let $abbName := string(a:name) return ({eira:tokenStringToOr($acceptedAbbs, '|', '$abbName')})])"><xsl:value-of select="$assertionMessage"/></assert>
+                        </xsl:variable> -->
+                        <!-- <assert id="{$ruleId}" test="exists(a:elements/a:element[let $abbName := string(a:name) return ({eira:tokenStringToOr($acceptedAbbs, '|', '$abbName')})])"><xsl:value-of select="$assertionMessage"/></assert> -->
+                        <assert id="{$ruleId}" test="exists(a:elements/a:element[let $abbName := string(a:name) return ({eira:tokenStringToOr($abbName, '|', '$abbName')})])"><xsl:value-of select="$assertionMessage"/></assert>
 <!--
 exists(
     a:elements/a:element[
@@ -480,22 +493,22 @@ exists(
                     <xsl:for-each select="/a:model/a:elements/a:element[eira:isSpecification(.)]">
                         <xsl:variable name="specSbb" select="current()"/>
                         <xsl:variable name="specSbbName" select="eira:sbbFromStereotypedName($specSbb/a:name)"/>
-                        <xsl:variable name="specAbb" select="eira:abbByName(eira:abbFromStereotypedName($specSbb))"/>
+                        <xsl:variable name="specAbb" select="eira:abbByName(eira:getPuri(current()))"/>
                         <xsl:variable name="specificationElementsInHierarchy" select="eira:findSpecificationElementsInHierarchy($specSbb)"/>
                         <xsl:variable name="abbsLinkedToSpecification" select="eira:abbsLinkedToSpecification($specSbb, $specificationElementsInHierarchy)"/>
                         <xsl:variable name="sbbsLinkedToSpecification" select="eira:sbbsLinkedToSpecification($specSbb, $specificationElementsInHierarchy)"/>
                         <!-- IoP specifications linked to ABBs -->
                         <xsl:for-each select="$abbsLinkedToSpecification">
                             <xsl:variable name="abb" select="current()"/>
-                            <xsl:variable name="allAcceptedAbbs" select="eira:allAbbEquivalentsAndChildren($abb, '|')"/>
-                            <xsl:variable name="allAcceptedSpecs" select="eira:allAbbEquivalentsAndChildren($specAbb, '|')"/>
-                            <xsl:variable name="multipleAcceptedSpecs" select="$specAbb/a:name != $allAcceptedSpecs"/>
-                            <xsl:variable name="multipleAcceptedAbbs" select="$abb/a:name != $allAcceptedAbbs"/>
-                            <xsl:variable name="allAcceptedAbbsDisplay" select="replace($allAcceptedAbbs, '\|', ''', ''')"/>
+                            <!-- <xsl:variable name="allAcceptedAbbs" select="eira:allAbbEquivalentsAndChildren($abb, $type, '|')"/> -->
+                            <!-- <xsl:variable name="allAcceptedSpecs" select="eira:allAbbEquivalentsAndChildren($specAbb, $type, '|')"/> -->
+                            <!-- <xsl:variable name="multipleAcceptedSpecs" select="$specAbb/a:name != $allAcceptedSpecs"/> -->
+                            <!-- <xsl:variable name="multipleAcceptedAbbs" select="$abb/a:name != $allAcceptedAbbs"/> -->
+                            <!-- <xsl:variable name="allAcceptedAbbsDisplay" select="replace($allAcceptedAbbs, '\|', ''', ''')"/> -->
                             <xsl:variable name="ruleId" select="'EIRA-040'"/>
-                            <xsl:variable name="assertionMessage">
-                                <xsl:choose>
-                                    <xsl:when test="$multipleAcceptedAbbs and $multipleAcceptedSpecs">
+                            <xsl:variable name="assertionMessage" select="concat('[', $ruleId, '] [', $satName, '] Specification ''', $specSbbName, ''' is defined for ABB ''', $abb/a:name, ''' that is not addressed in the solution. The solution must include an SBB for ABB ''', $abb/a:name, ''' associated to this specification.')"/>
+                                <!-- <xsl:choose> -->
+                                    <!-- <xsl:when test="$multipleAcceptedAbbs and $multipleAcceptedSpecs">
                                         <xsl:value-of select="concat('[', $ruleId, '] [', $satName, '] Specification ''', $specSbbName, ''' is defined for ABB ''', $abb/a:name, ''' that is not addressed in the solution. The solution must include an SBB for an appropriate ABB (''', $allAcceptedAbbsDisplay, ''') associated to this specification.')"/>
                                     </xsl:when>
                                     <xsl:when test="$multipleAcceptedAbbs and not($multipleAcceptedSpecs)">
@@ -503,13 +516,14 @@ exists(
                                     </xsl:when>
                                     <xsl:when test="not($multipleAcceptedAbbs) and $multipleAcceptedSpecs">
                                         <xsl:value-of select="concat('[', $ruleId, '] [', $satName, '] Specification ''', $specSbbName, ''' is defined for ABB ''', $abb/a:name, ''' that is not addressed in the solution. The solution must include an SBB for ABB ''', $allAcceptedAbbsDisplay, ''' associated to this specification.')"/>
-                                    </xsl:when>
-                                    <xsl:otherwise>
+                                    </xsl:when> -->
+                                    <!-- <xsl:otherwise>
                                         <xsl:value-of select="concat('[', $ruleId, '] [', $satName, '] Specification ''', $specSbbName, ''' is defined for ABB ''', $abb/a:name, ''' that is not addressed in the solution. The solution must include an SBB for ABB ''', $allAcceptedAbbsDisplay, ''' associated to this specification.')"/>
-                                    </xsl:otherwise>
-                                </xsl:choose>
-                            </xsl:variable>
-                            <assert id="{$ruleId}" test="exists(a:elements/a:element[let $elementIdentifier := @identifier return (let $declaredAbbName := string(a:name) return ({eira:tokenStringToOr($allAcceptedAbbs, '|', '$declaredAbbName')}) and exists(/a:model/a:relationships/a:relationship[@xsi:type = 'Association' and (@target = $elementIdentifier or @source = $elementIdentifier) and (let $associatedIdentifier := (if (@target = $elementIdentifier) then @source else @target) return (exists(/a:model/a:elements/a:element[@identifier = $associatedIdentifier and (let $specAbbName := string(a:name) return (let $specSbbName := string(a:name) return ($specSbbName = '{eira:sanitizeForQuery($specSbbName)}' and ({eira:tokenStringToOr($allAcceptedSpecs, '|', '$specAbbName')}))))])))]))])"><xsl:value-of select="$assertionMessage"/></assert>
+                                    </xsl:otherwise> -->
+                                <!-- </xsl:choose> -->
+                            <!-- </xsl:variable> -->
+                            <!-- <assert id="{$ruleId}" test="exists(a:elements/a:element[let $elementIdentifier := @identifier return (let $declaredAbbName := string(a:name) return ({eira:tokenStringToOr($allAcceptedAbbs, '|', '$declaredAbbName')}) and exists(/a:model/a:relationships/a:relationship[@xsi:type = 'Association' and (@target = $elementIdentifier or @source = $elementIdentifier) and (let $associatedIdentifier := (if (@target = $elementIdentifier) then @source else @target) return (exists(/a:model/a:elements/a:element[@identifier = $associatedIdentifier and (let $specAbbName := string(a:name) return (let $specSbbName := string(a:name) return ($specSbbName = '{eira:sanitizeForQuery($specSbbName)}' and ({eira:tokenStringToOr($allAcceptedSpecs, '|', '$specAbbName')}))))])))]))])"><xsl:value-of select="$assertionMessage"/></assert> -->
+                            <assert id="{$ruleId}" test="exists(a:elements/a:element[let $elementIdentifier := @identifier return (exists(/a:model/a:relationships/a:relationship[@xsi:type = 'Association' and (@target = $elementIdentifier or @source = $elementIdentifier) and (let $associatedIdentifier := (if (@target = $elementIdentifier) then @source else @target) return (exists(/a:model/a:elements/a:element[@identifier = $associatedIdentifier and (let $specAbbName := string(a:name) return (let $specSbbName := string(a:name) return ($specSbbName = '{eira:sanitizeForQuery($specSbbName)}')))])))]))])"><xsl:value-of select="$assertionMessage"/></assert>
 <!--
     exists(
         a:elements/a:element[
@@ -577,10 +591,11 @@ exists(
                         </xsl:for-each>
                         <!-- IoP specifications without ABB or SBB links -->
                         <xsl:if test="not(exists($abbsLinkedToSpecification)) and not(exists($sbbsLinkedToSpecification))">
-                            <xsl:variable name="acceptedAbbs" select="eira:allAbbEquivalentsAndChildren(eira:abbByName(eira:abbFromStereotypedName(current()/a:name)), '|')"/>
+                            <!-- <xsl:variable name="acceptedAbbs" select="eira:allAbbEquivalentsAndChildren(eira:abbByName(eira:abbFromStereotypedName(current()/a:name), current()/@xsi:type), current()/@xsi:type, '|')"/> -->
                             <xsl:variable name="sbbName" select="eira:sbbFromStereotypedName(current()/a:name)"/>
                             <xsl:variable name="ruleId" select="'EIRA-042'"/>
-                            <assert id="{$ruleId}" test="exists(a:elements/a:element[let $abbName := string(a:name) return (let $sbbName := string(a:name) return ($sbbName = '{eira:sanitizeForQuery($sbbName)}' and ({eira:tokenStringToOr($acceptedAbbs, '|', '$abbName')})))])">[<xsl:value-of select="$ruleId"/>] [<xsl:value-of select="$satName"/>] Specification '<xsl:value-of select="eira:sbbFromStereotypedName(current()/a:name)"/>' of type '<xsl:value-of select="eira:abbFromStereotypedName(current()/a:name)"/>' is expected and must be included in the solution.</assert>
+                            <!-- <assert id="{$ruleId}" test="exists(a:elements/a:element[let $abbName := string(a:name) return (let $sbbName := string(a:name) return ($sbbName = '{eira:sanitizeForQuery($sbbName)}' and ({eira:tokenStringToOr($acceptedAbbs, '|', '$abbName')})))])">[<xsl:value-of select="$ruleId"/>] [<xsl:value-of select="$satName"/>] Specification '<xsl:value-of select="eira:sbbFromStereotypedName(current()/a:name)"/>' of type '<xsl:value-of select="eira:abbFromStereotypedName(current()/a:name)"/>' is expected and must be included in the solution.</assert> -->
+                            <assert id="{$ruleId}" test="exists(a:elements/a:element[let $abbName := string(a:name) return (let $sbbName := string(a:name) return ($sbbName = '{eira:sanitizeForQuery($sbbName)}'))])">[<xsl:value-of select="$ruleId"/>] [<xsl:value-of select="$satName"/>] Specification '<xsl:value-of select="eira:sbbFromStereotypedName(current()/a:name)"/>' of type '<xsl:value-of select="eira:abbFromStereotypedName(current()/a:name)"/>' is expected and must be included in the solution.</assert>
                         </xsl:if>
                     </xsl:for-each>
                 </rule>
