@@ -23,7 +23,6 @@
 		<assert test="$EIRA-024-13" flag="warning" id="EIRA-024-13">[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'Technical Interoperability Agreement' SBB is defined.</assert>
 		<assert test="$EIRA-036" flag="warning" id="EIRA-036">[EIRA-036] At least one SBB should be defined for the 'Interoperability Specification' ABB.</assert>
 	</rule>
-
 	<rule context="$SolutionBuildingBlock">
 		<assert test="$EIRA-003" flag="fatal" id="EIRA-003">[EIRA-003] SBB '<value-of select="$ElementName"/>' ('<value-of select="$SBBDeclaredABB"/>') has an invalid element type '<value-of select="$ElementType"/>'. Expected element type '<value-of select="$SBBDeclaredABBElementType"/>'.</assert>
 		<assert test="$EIRA-004" flag="fatal" id="EIRA-004">[EIRA-004] SBB '<value-of select="$ElementName"/>' references an invalid ABB. No ABB is defined for name '<value-of select="$SBBDeclaredABB"/>'.</assert>

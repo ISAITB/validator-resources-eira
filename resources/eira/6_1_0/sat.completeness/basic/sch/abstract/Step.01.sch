@@ -5,8 +5,8 @@
 	    <assert test="$EIRA-001-03" flag="warning" id="EIRA-001-03">[EIRA-001] The model must define a view named 'Semantic view'.</assert>
 	    <assert test="$EIRA-001-04" flag="warning" id="EIRA-001-04">[EIRA-001] The model must define a view named 'Technical view - application'.</assert>
 	    <assert test="$EIRA-001-05" flag="warning" id="EIRA-001-05">[EIRA-001] The model must define a view named 'Technical view - infrastructure'.</assert>
-			
-	    <assert test="$EIRA-022" flag="warning" id="EIRA-022">[EIRA-022] At least one SBB should be defined for the 'Interoperability Requirement' ABB or one of its specialisations ('Legal', 'Organisational', 'Semantic' or 'Technical Interoperability Requirement').</assert>
+		
+	    <assert test="$EIRA-022" flag="warning" id="EIRA-022">[EIRA-022] At least one SBB should be defined for the 'Interoperability Requirement' ABB.</assert>
 		<assert test="$EIRA-023" flag="warning" id="EIRA-023">[EIRA-023] At least one SBB must be defined for the 'Machine to Machine Interface' or 'Human Interface' ABBs.</assert>
 		<assert test="$EIRA-024-01" flag="warning" id="EIRA-024-01">[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'Legislation Catalogue' SBB is defined.</assert>
 		<assert test="$EIRA-024-02" flag="warning" id="EIRA-024-02">[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'Digital Public Service Catalogue' SBB is defined.</assert>
@@ -31,7 +31,7 @@
 		<!--<assert test="$EIRA-025" flag="warning" id="EIRA-025">[EIRA-025] SBBs for the 'Interoperability Specification' ABB are not allowed. SBB '<value-of select="$ElementName"/>' (<value-of select="$SBBDeclaredABB"/>) must be removed.</assert>-->
 	</rule>
  	<rule context="$ArchitectureBuildingBlock">
-		<assert test="$EIRA-008" flag="fatal" id="EIRA-008">[EIRA-008] ABB '<value-of select="$ABBName"/>' defined with element type '<value-of select="$ElementType"/>' that does not match the EIRA. Expected element type '<value-of select="$EIRAABBElementType"/>'.</assert>
+		<assert test="$EIRA-008" flag="fatal" id="EIRA-008">[EIRA-008] ABB '<value-of select="$ElementName"/>' defined with element type '<value-of select="$ElementType"/>' that does not match the EIRA. Expected element type '<value-of select="$EIRAABBElementType"/>'.</assert>
 		<!--<assert test="$EIRA-037" flag="warning" id="EIRA-037">[EIRA-037] ABB '<value-of select="$ABBName"/>' does not have an association to an SBB of type 'Interoperability Specification' (or one of its specialisations).</assert>-->
  	</rule>
  	<!--<rule context="$SBBPropertyDefinedInEIRA">
