@@ -4,4 +4,7 @@ You may edit all files **except** `resources\application.properties` as this cou
 
 To publish changes commit and push your updates. In 1-2 minutes the online service will be updated.
 
-The online service is accessible at https://www.itb.ec.europa.eu/eira/upload and the web service API at https://www.itb.ec.europa.eu/eira/api.
+The online service is accessible at https://www.itb.ec.europa.eu/interoperability/upload and the web service API at https://www.itb.ec.europa.eu/interoperability/api.
+
+
+XML validator documentation: https://www.itb.ec.europa.eu/docs/guides/latest/validatingXML/index.html
