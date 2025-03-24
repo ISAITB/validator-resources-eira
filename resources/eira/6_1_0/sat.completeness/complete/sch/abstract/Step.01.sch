@@ -15,8 +15,8 @@
 		<assert test="$EIRA-024-05" flag="warning" id="EIRA-024-05">[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'Service Discovery and Registry' SBB is defined.</assert>
 		<assert test="$EIRA-024-06" flag="warning" id="EIRA-024-06">[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'API Discovery and Catalogue' SBB is defined.</assert>
 		<assert test="$EIRA-024-07" flag="warning" id="EIRA-024-07">[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'Legislation on Data Information and Knowledge Exchange' SBB is defined.</assert>
-		<assert test="$EIRA-024-08" flag="warning" id="EIRA-024-08">[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'Service Delivery Mode' SBB is defined.</assert>
-		<assert test="$EIRA-024-09" flag="warning" id="EIRA-024-09">[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'Data mapping' SBB is defined.</assert>
+		<assert test="$EIRA-024-08" flag="warning" id="EIRA-024-08">[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'Digital Public Service Delivery Model' SBB is defined.</assert>
+		<assert test="$EIRA-024-09" flag="warning" id="EIRA-024-09">[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'Data Mapping' SBB is defined.</assert>
 		<assert test="$EIRA-024-10" flag="warning" id="EIRA-024-10">[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'Legal Interoperability Agreement' SBB is defined.</assert>
 		<assert test="$EIRA-024-11" flag="warning" id="EIRA-024-11">[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'Organisational Interoperability Agreement' SBB is defined.</assert>
 		<assert test="$EIRA-024-12" flag="warning" id="EIRA-024-12">[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'Semantic Interoperability Agreement' SBB is defined.</assert>

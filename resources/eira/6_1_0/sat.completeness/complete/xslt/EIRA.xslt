@@ -153,7 +153,7 @@
 
 <!--SCHEMA SETUP-->
 <xsl:template match="/">
-    <svrl:schematron-output schemaVersion="" title="EIRA v6.0.0 - SAT Completeness Profile - Complete level">
+    <svrl:schematron-output schemaVersion="" title="EIRA v6.1.0 - SAT Completeness Profile - Complete level">
       <xsl:comment>
         <xsl:value-of select="$archiveDirParameter" />   
 		 <xsl:value-of select="$archiveNameParameter" />  
@@ -184,7 +184,7 @@
   </xsl:template>
 
 <!--SCHEMATRON PATTERNS-->
-<svrl:text>EIRA v6.0.0 - SAT Completeness Profile - Complete level</svrl:text>
+<svrl:text>EIRA v6.1.0 - SAT Completeness Profile - Complete level</svrl:text>
 
 <!--PATTERN MEF-Step.01-->
 
@@ -413,7 +413,7 @@
           <xsl:attribute name="location">
             <xsl:apply-templates mode="schematron-select-full-path" select="." />
           </xsl:attribute>
-          <svrl:text>[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'Service Delivery Mode' SBB is defined.</svrl:text>
+          <svrl:text>[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'Digital Public Service Delivery Model' SBB is defined.</svrl:text>
         </svrl:failed-assert>
       </xsl:otherwise>
     </xsl:choose>
@@ -428,7 +428,7 @@
           <xsl:attribute name="location">
             <xsl:apply-templates mode="schematron-select-full-path" select="." />
           </xsl:attribute>
-          <svrl:text>[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'Data mapping' SBB is defined.</svrl:text>
+          <svrl:text>[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'Data Mapping' SBB is defined.</svrl:text>
         </svrl:failed-assert>
       </xsl:otherwise>
     </xsl:choose>

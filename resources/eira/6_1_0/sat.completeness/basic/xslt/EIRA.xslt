@@ -413,7 +413,7 @@
           <xsl:attribute name="location">
             <xsl:apply-templates mode="schematron-select-full-path" select="." />
           </xsl:attribute>
-          <svrl:text>[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'Service Delivery Mode' SBB is defined.</svrl:text>
+          <svrl:text>[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'Digital Public Service Delivery Model' SBB is defined.</svrl:text>
         </svrl:failed-assert>
       </xsl:otherwise>
     </xsl:choose>
@@ -428,7 +428,7 @@
           <xsl:attribute name="location">
             <xsl:apply-templates mode="schematron-select-full-path" select="." />
           </xsl:attribute>
-          <svrl:text>[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'Data mapping' SBB is defined.</svrl:text>
+          <svrl:text>[EIRA-024] SBBs should be defined for all key interoperability enablers. No 'Data Mapping' SBB is defined.</svrl:text>
         </svrl:failed-assert>
       </xsl:otherwise>
     </xsl:choose>
