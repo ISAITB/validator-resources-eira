@@ -6,7 +6,7 @@ services:
       image: isaitb/xml-validator:latest
       restart: unless-stopped
       volumes:
-      -  ./resources:/validator/resources/interoperability
+      -  ./resources:/validator/resources/eira
       environment:
       -  validator.resourceRoot=/validator/resources/
       ports:
