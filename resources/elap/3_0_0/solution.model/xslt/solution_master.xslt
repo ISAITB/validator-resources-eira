@@ -73,7 +73,7 @@
   </xsl:function>
   <xsl:function as="xs:boolean" name="local:lackOfPrincipleIsExplained">
     <xsl:param name="element" />
-    <xsl:variable name="result" select="exists($element[let $elementIdentifier := @identifier return ($root/a:model/a:views/a:diagrams/a:view[let $view := . return ($view/a:node[@elementRef = $elementIdentifier and (let $nodeIdentifier := @identifier return ($view/a:connection[($nodeIdentifier = @source and (let $otherNodeIdentifier := @target return (exists($view/a:node[@identifier = $otherNodeIdentifier and @xsi:type = 'Label'])))) or ($nodeIdentifier = @target and (let $otherNodeIdentifier := @source return (exists($view/a:node[@identifier = $otherNodeIdentifier and @xsi:type = 'Label']))))]))])])])" />
+    <xsl:variable name="result" select="let $elementIdentifier := $element/@identifier return (let $elementNodeIdentifier := $notImplementedGroupingNode/a:node[@elementRef = $elementIdentifier]/@identifier return (let $noteNodeTarget := $root/a:model/a:views/a:diagrams/a:view/a:connection[@source = $elementNodeIdentifier]/@target return (let $noteNodeSource := $root/a:model/a:views/a:diagrams/a:view/a:connection[@target = $elementNodeIdentifier]/@source return exists($notImplementedGroupingNode/a:node[(@identifier = $noteNodeSource or @identifier = $noteNodeTarget) and @xsi:type = 'Label']))))" />
     <xsl:sequence select="$result" />
   </xsl:function>
   <xsl:function as="xs:boolean" name="local:isObligation">
@@ -259,8 +259,9 @@
   <xsl:param name="satPrinciples" select="$satDoc/a:model/a:elements/a:element[@xsi:type = 'Principle' and a:name != 'Architecture Principle' and exists(a:properties/a:property[@propertyDefinitionRef = $satDoc/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'elap:PURI']/@identifier])]" />
   <xsl:param name="satAbb" select="$satDoc/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = $satDoc/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier and a:value = 'eira:ArchitectureBuildingBlock']]" />
   <xsl:param name="inputAbb" select="$root/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = $root/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier and a:value = 'eira:ArchitectureBuildingBlock']]" />
-  
-  
+  <xsl:param name="notImplementedGroupingIdentifier" select="$root/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = $root/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:PURI']/@identifier]/a:value = 'http://data.europa.eu/dr8/egovera/NotImplementedArchitecturePrinciplesCatalogueGrouping' and @xsi:type = 'Grouping']/@identifier"/>
+  <xsl:param name="notImplementedPrinciples" select="$root/a:model/a:elements/a:element[let $elementIdentifier := @identifier return exists($root/a:model/a:relationships/a:relationship[@source = $notImplementedGroupingIdentifier and @target = $elementIdentifier])]"/>
+  <xsl:param name="notImplementedGroupingNode" select="$root/a:model/a:views/a:diagrams/a:view/a:node[@elementRef = $notImplementedGroupingIdentifier]"/>
   <!--PATTERN CommonCompleteness-->
   
   
@@ -1141,14 +1142,14 @@
   </xsl:template>
   
   <!--RULE -->
-  <xsl:template match="/a:model/a:elements/a:element[local:isArchitecturePrinciple(.) and local:isObligation(.)]" mode="M28" priority="1000">
-    <svrl:fired-rule context="/a:model/a:elements/a:element[local:isArchitecturePrinciple(.) and local:isObligation(.)]" />
+  <xsl:template match="$notImplementedPrinciples" mode="M28" priority="1000">
+    <svrl:fired-rule context="$notImplementedPrinciples" />
     
     <!--ASSERT -->
     <xsl:choose>
-      <xsl:when test="not(local:lackOfPrincipleIsExplained(.))" />
+      <xsl:when test="not(local:isObligation(.))" />
       <xsl:otherwise>
-        <svrl:failed-assert test="not(local:lackOfPrincipleIsExplained(.))">
+        <svrl:failed-assert test="not(local:isObligation(.))">
           <xsl:attribute name="id">ELAP-003</xsl:attribute>
           <xsl:attribute name="flag">fatal</xsl:attribute>
           <xsl:attribute name="location">
