@@ -60,10 +60,11 @@
     <xsl:sequence select="exists($element[@xsi:type = 'Principle' and a:name != 'Architecture Principle' and exists(a:properties/a:property[@propertyDefinitionRef = $root/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'elap:PURI']/@identifier])])" />
   </xsl:function>
   <xsl:function as="xs:string*" name="local:abbFromPrinciple">
-        <xsl:param name="element" />
-        <xsl:variable name="abb" select="$satAbb[let $satAbbIdentifier := @identifier return(let $principlePURI := $element/a:properties/a:property[@propertyDefinitionRef = $root/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'elap:PURI']/@identifier]/a:value return(let $satPrincipleIdentifier := $satPrinciples[a:properties/a:property[@propertyDefinitionRef = $satDoc/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'elap:PURI']/@identifier]/a:value = $principlePURI]/@identifier return(exists($satDoc/a:model/a:relationships/a:relationship[@target = $satAbbIdentifier and @source = $satPrincipleIdentifier]))))]/a:name" />
-        <xsl:sequence select="string-join($abb, '; ')" />
-    </xsl:function>
+    <xsl:param name="element" />
+    <xsl:variable name="relatedAbbs" select="$inputAbb[$root/a:model/a:relationships/a:relationship[@source = $element/@identifier]/@target = @identifier]"/>
+    <xsl:variable name="abb" select="$satAbb[let $satAbbIdentifier := @identifier return (let $satAbbName := a:name return (let $principlePURI := $element/a:properties/a:property[@propertyDefinitionRef = $root/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'elap:PURI']/@identifier]/a:value return(let $satPrincipleIdentifier := $satPrinciples[a:properties/a:property[@propertyDefinitionRef = $satDoc/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'elap:PURI']/@identifier]/a:value = $principlePURI]/@identifier return(exists($satDoc/a:model/a:relationships/a:relationship[@target = $satAbbIdentifier and @source = $satPrincipleIdentifier]) and not(exists($relatedAbbs[a:name = $satAbbName]))))))]/a:name" />
+    <xsl:sequence select="string-join($abb, '; ')" />
+  </xsl:function>
   <xsl:function as="xs:boolean" name="local:findAbbRelatedToPrinciple">
     <xsl:param name="inputPrinciple" />
 		<xsl:variable name="equivalentSatPrincipleIdentifier" select="$satPrinciples[let $satPrinciplePURI := a:properties/a:property[@propertyDefinitionRef = $satDoc/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'elap:PURI']/@identifier]/a:value return ($inputPrinciple/a:properties/a:property[@propertyDefinitionRef = $root/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'elap:PURI']/@identifier]/a:value = $satPrinciplePURI)]/@identifier" />
@@ -1147,7 +1148,7 @@
           </xsl:attribute>
           <svrl:text>[ELAP-004] Architecture principle '<xsl:text />
             <xsl:value-of select="./a:name" />
-            <xsl:text />' must be modelled and related to the correct ABB. Any of the following ABBs can be related to this principle: <xsl:text />
+            <xsl:text />' must be modelled and related to the correct ABB. The principle is missing the relationship with these ABBs: <xsl:text />
             <xsl:value-of select="local:abbFromPrinciple(.)" />
             <xsl:text />.</svrl:text>
         </svrl:failed-assert>
