@@ -38,7 +38,7 @@
       </xsl:if>
       <xsl:copy-of select="$element" />
     </xsl:variable>
-    <xsl:variable name="relatedIdentifiers" select="$root/a:model/a:relationships/a:relationship[$elementIdentifier = @source and not(local:inElementSet(@target, $checkedElements))]/@target | $root/a:model/a:relationships/a:relationship[$elementIdentifier = @target and not(local:inElementSet(@source, $checkedElements))]/@source" />
+    <xsl:variable name="relatedIdentifiers" select="$root/a:model/a:relationships/a:relationship[$elementIdentifier = @source and not(local:inElementSet(@target, $checkedElements)) and (@xsi:type = 'Association' or @xsi:type = 'Influence')]/@target | $root/a:model/a:relationships/a:relationship[$elementIdentifier = @target and not(local:inElementSet(@source, $checkedElements)) and (@xsi:type = 'Association' or @xsi:type = 'Influence')]/@source" />
     <xsl:variable name="foundElements" select="$root/a:model/a:elements/a:element[contains-token($relatedIdentifiers, @identifier)]" />
     <xsl:variable as="element()*" name="result">
       <xsl:if test="exists($foundElements)">
