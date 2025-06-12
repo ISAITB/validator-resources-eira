@@ -52,7 +52,7 @@
   </xsl:function>
   <xsl:function as="element()*" name="local:findNonHierarchicalLinkedElements">
     <xsl:param name="element" />
-    <xsl:variable name="result" select="local:findAllRelatedElements($element, $root/..)[@identifier != $element/@identifier and @xsi:type != 'Principle' and @xsi:type != 'Grouping']" />
+    <xsl:variable name="result" select="local:findAllRelatedElements($element, $root/..)[@identifier != $element/@identifier and @xsi:type != 'Principle']" />
     <xsl:sequence select="$result" />
   </xsl:function>
   <xsl:function as="xs:boolean" name="local:isArchitecturePrinciple">
