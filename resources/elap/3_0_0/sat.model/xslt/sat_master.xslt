@@ -1138,9 +1138,9 @@
 
     <!--ASSERT -->
     <xsl:choose>
-      <xsl:when test="local:findAbbRelatedToPrinciple(.)" />
+      <xsl:when test="local:findAbbRelatedToPrinciple(.) or local:lackOfPrincipleIsExplained(.)" />
       <xsl:otherwise>
-        <svrl:failed-assert test="local:findAbbRelatedToPrinciple(.)">
+        <svrl:failed-assert test="local:findAbbRelatedToPrinciple(.) or local:lackOfPrincipleIsExplained(.)">
           <xsl:attribute name="id">ELAP-004</xsl:attribute>
           <xsl:attribute name="flag">warning</xsl:attribute>
           <xsl:attribute name="location">
