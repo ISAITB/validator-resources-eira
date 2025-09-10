@@ -26,16 +26,9 @@
 	<rule context="$SolutionBuildingBlock">
 		<assert test="$EIRA-003" flag="fatal" id="EIRA-003">[EIRA-003] SBB '<value-of select="$ElementName"/>' ('<value-of select="$SBBDeclaredABB"/>') has an invalid element type '<value-of select="$ElementType"/>'. Expected element type '<value-of select="$SBBDeclaredABBElementType"/>'.</assert>
 		<assert test="$EIRA-004" flag="fatal" id="EIRA-004">[EIRA-004] SBB '<value-of select="$ElementName"/>' references an invalid ABB. No ABB is defined for name '<value-of select="$SBBDeclaredABB"/>'.</assert>
-		<!--<assert test="$EIRA-005" flag="warning" id="EIRA-005">[EIRA-005] SBB '<value-of select="$ElementName"/>' (<value-of select="$SBBDeclaredABBName"/>) is missing required attribute(s) [<value-of select="$MissingSBBAttributeNames"/>].</assert>-->
 		<assert test="$EIRA-006" flag="warning" id="EIRA-006">[EIRA-006] SBB '<value-of select="$ElementName"/>' refers to deprecated ABB '<value-of select="$SBBDeclaredABB"/>'.</assert>
-		<!--<assert test="$EIRA-025" flag="fatal" id="EIRA-025">[EIRA-025] SBBs for the 'Interoperability Specification' ABB are not allowed. SBB '<value-of select="$ElementName"/>' (<value-of select="$SBBDeclaredABB"/>) must be removed.</assert>-->
 	</rule>
  	<rule context="$ArchitectureBuildingBlock">
 		<assert test="$EIRA-008" flag="fatal" id="EIRA-008">[EIRA-008] ABB '<value-of select="$ElementName"/>' defined with element type '<value-of select="$ElementType"/>' that does not match the EIRA. Expected element type '<value-of select="$EIRAABBElementType"/>'.</assert>
-		<!--<assert test="$EIRA-037" flag="warning" id="EIRA-037">[EIRA-037] ABB '<value-of select="$ABBName"/>' does not have an association to an SBB of type 'Interoperability Specification' (or one of its specialisations).</assert>-->
  	</rule>
- 	<!--<rule context="$SBBPropertyDefinedInEIRA">
-		<assert test="$EIRA-009" flag="warning" id="EIRA-009">[EIRA-009] SBB '<value-of select="$SBBPropertySBBName"/>' (<value-of select="$SBBPropertyDeclaredABBName"/>) defines invalid value '<value-of select="$SBBPropertyValue"/>' for attribute '<value-of select="$SBBPropertyName"/>'. Expected '<value-of select="$ABBExpectedPropertyValue"/>'.</assert>
-		<assert test="$EIRA-010" flag="warning" id="EIRA-010">[EIRA-010] SBB '<value-of select="$SBBPropertySBBName"/>' (<value-of select="$SBBPropertyDeclaredABBName"/>) must not define multiple values for attribute '<value-of select="$SBBPropertyName"/>'.</assert>
- 	</rule>-->
 </pattern>
