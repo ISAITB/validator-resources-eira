@@ -578,11 +578,11 @@
   </xsl:template>
 
 	<!--RULE -->
-<xsl:template match="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = /a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier and a:value = 'eira:ArchitectureBuildingBlock']]" mode="M5" priority="1000">
-    <svrl:fired-rule context="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = /a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier and a:value = 'eira:ArchitectureBuildingBlock']]" />
+<!--<xsl:template match="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = /a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier and a:value = 'eira:ArchitectureBuildingBlock']]" mode="M5" priority="1000">
+    <svrl:fired-rule context="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = /a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier and a:value = 'eira:ArchitectureBuildingBlock']]" />-->
 
 		<!--ASSERT -->
-<xsl:choose>
+<!--<xsl:choose>
       <xsl:when test="every $abbPuri in a:properties/a:property[@propertyDefinitionRef = /a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:PURI']/@identifier]/a:value, $elementType in @xsi:type satisfies (document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier and a:value = 'eira:ArchitectureBuildingBlock']][a:properties/a:property[@propertyDefinitionRef = document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:PURI']/@identifier and a:value = $abbPuri]]/@xsi:type = $elementType)" />
       <xsl:otherwise>
         <svrl:failed-assert test="every $abbPuri in a:properties/a:property[@propertyDefinitionRef = /a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:PURI']/@identifier]/a:value, $elementType in @xsi:type satisfies (document('eira/EIRA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier and a:value = 'eira:ArchitectureBuildingBlock']][a:properties/a:property[@propertyDefinitionRef = document('eira/EIRA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:PURI']/@identifier and a:value = $abbPuri]]/@xsi:type = $elementType)">
@@ -606,7 +606,7 @@
   <xsl:template match="text()" mode="M5" priority="-1" />
   <xsl:template match="@*|node()" mode="M5" priority="-2">
     <xsl:apply-templates mode="M5" select="@*|*|comment()|processing-instruction()" />
-  </xsl:template>
+  </xsl:template>-->
 
 <!--PATTERN MEF-Step.02-->
 

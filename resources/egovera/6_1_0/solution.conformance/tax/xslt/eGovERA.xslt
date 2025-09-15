@@ -178,55 +178,55 @@
 <svrl:text>eGovERA - Solution Conformance - Business Agnostic</svrl:text>
 
 <!--PATTERN MEF-Step.01-->
-
-
-	<!--RULE -->
-<xsl:template match="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock']]" mode="M4" priority="1001">
-    <svrl:fired-rule context="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock']]" />
-
-		<!--ASSERT -->
-<xsl:choose>
-      <xsl:when test="let $abbPURI := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:PURI']/@identifier)]/a:value return (let $abb := document('egovera/eGovERA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('egovera/eGovERA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock']] return $abb/a:properties/a:property[@propertyDefinitionRef = string(document('egovera/eGovERA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:PURI']/@identifier)]/a:value = $abbPURI)" />
-      <xsl:otherwise>
-        <svrl:failed-assert test="let $abbPURI := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:PURI']/@identifier)]/a:value return (let $abb := document('egovera/eGovERA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('egovera/eGovERA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock']] return $abb/a:properties/a:property[@propertyDefinitionRef = string(document('egovera/eGovERA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:PURI']/@identifier)]/a:value = $abbPURI)">
-          <xsl:attribute name="id">eGovERA-009</xsl:attribute>
-          <xsl:attribute name="flag">error</xsl:attribute>
-          <xsl:attribute name="location">
-            <xsl:apply-templates mode="schematron-select-full-path" select="." />
-          </xsl:attribute>
-          <svrl:text>[eGovERA-009] ABB '<xsl:text />
-            <xsl:value-of select="string(a:name)" />
-            <xsl:text />' is not defined in the selected eGovERA model.</svrl:text>
-        </svrl:failed-assert>
-      </xsl:otherwise>
-    </xsl:choose>
-    <xsl:apply-templates mode="M4" select="@*|*" />
-  </xsl:template>
-
-	<!--RULE -->
-<xsl:template match="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:SolutionBuildingBlock']]" mode="M4" priority="1000">
-    <svrl:fired-rule context="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:SolutionBuildingBlock']]" />
-
-		<!--ASSERT -->
-<xsl:choose>
-      <xsl:when test="let $sbbReferencesAbb := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:ABB']/@identifier)]/a:value return (let $abb := document('egovera/eGovERA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('egovera/eGovERA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock']] return exists($abb/a:properties/a:property[@propertyDefinitionRef = string(document('egovera/eGovERA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier) and a:value = $sbbReferencesAbb]))" />
-      <xsl:otherwise>
-        <svrl:failed-assert test="let $sbbReferencesAbb := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:ABB']/@identifier)]/a:value return (let $abb := document('egovera/eGovERA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('egovera/eGovERA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock']] return exists($abb/a:properties/a:property[@propertyDefinitionRef = string(document('egovera/eGovERA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier) and a:value = $sbbReferencesAbb]))">
-          <xsl:attribute name="id">eGovERA-010</xsl:attribute>
-          <xsl:attribute name="flag">error</xsl:attribute>
-          <xsl:attribute name="location">
-            <xsl:apply-templates mode="schematron-select-full-path" select="." />
-          </xsl:attribute>
-          <svrl:text>[eGovERA-010] SBB '<xsl:text />
-            <xsl:value-of select="string(a:name)" />
-            <xsl:text />' references invalid ABB. ABB '<xsl:text />
-            <xsl:value-of select="a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:ABB']/@identifier)]/a:value" />
-            <xsl:text />' is not defined in the selected eGovERA model.</svrl:text>
-        </svrl:failed-assert>
-      </xsl:otherwise>
-    </xsl:choose>
-    <xsl:apply-templates mode="M4" select="@*|*" />
-  </xsl:template>
+  
+  
+  <!--RULE -->
+  <!--<xsl:template match="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock']]" mode="M4" priority="1001">
+       <svrl:fired-rule context="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock']]" />-->
+  
+  <!--ASSERT -->
+  <!--<xsl:choose>
+       <xsl:when test="let $abbPURI := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:PURI']/@identifier)]/a:value return (let $abb := document('egovera/eGovERA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('egovera/eGovERA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock']] return $abb/a:properties/a:property[@propertyDefinitionRef = string(document('egovera/eGovERA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:PURI']/@identifier)]/a:value = $abbPURI)" />
+       <xsl:otherwise>
+       <svrl:failed-assert test="let $abbPURI := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:PURI']/@identifier)]/a:value return (let $abb := document('egovera/eGovERA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('egovera/eGovERA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock']] return $abb/a:properties/a:property[@propertyDefinitionRef = string(document('egovera/eGovERA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:PURI']/@identifier)]/a:value = $abbPURI)">
+       <xsl:attribute name="id">eGovERA-009</xsl:attribute>
+       <xsl:attribute name="flag">error</xsl:attribute>
+       <xsl:attribute name="location">
+       <xsl:apply-templates mode="schematron-select-full-path" select="." />
+       </xsl:attribute>
+       <svrl:text>[eGovERA-009] ABB '<xsl:text />
+       <xsl:value-of select="string(a:name)" />
+       <xsl:text />' is not defined in the selected eGovERA model.</svrl:text>
+       </svrl:failed-assert>
+       </xsl:otherwise>
+       </xsl:choose>
+       <xsl:apply-templates mode="M4" select="@*|*" />
+       </xsl:template>-->
+  
+  <!--RULE -->
+  <!--<xsl:template match="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:SolutionBuildingBlock']]" mode="M4" priority="1000">
+       <svrl:fired-rule context="/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:SolutionBuildingBlock']]" />-->
+  
+  <!--ASSERT -->
+  <!--<xsl:choose>
+       <xsl:when test="let $sbbReferencesAbb := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:ABB']/@identifier)]/a:value return (let $abb := document('egovera/eGovERA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('egovera/eGovERA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock']] return exists($abb/a:properties/a:property[@propertyDefinitionRef = string(document('egovera/eGovERA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier) and a:value = $sbbReferencesAbb]))" />
+       <xsl:otherwise>
+       <svrl:failed-assert test="let $sbbReferencesAbb := a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:ABB']/@identifier)]/a:value return (let $abb := document('egovera/eGovERA.xml')/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = string(document('egovera/eGovERA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:concept']/@identifier) and a:value = 'eira:ArchitectureBuildingBlock']] return exists($abb/a:properties/a:property[@propertyDefinitionRef = string(document('egovera/eGovERA.xml')/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'dct:type']/@identifier) and a:value = $sbbReferencesAbb]))">
+       <xsl:attribute name="id">eGovERA-010</xsl:attribute>
+       <xsl:attribute name="flag">error</xsl:attribute>
+       <xsl:attribute name="location">
+       <xsl:apply-templates mode="schematron-select-full-path" select="." />
+       </xsl:attribute>
+       <svrl:text>[eGovERA-010] SBB '<xsl:text />
+       <xsl:value-of select="string(a:name)" />
+       <xsl:text />' references invalid ABB. ABB '<xsl:text />
+       <xsl:value-of select="a:properties/a:property[@propertyDefinitionRef = string(/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'eira:ABB']/@identifier)]/a:value" />
+       <xsl:text />' is not defined in the selected eGovERA model.</svrl:text>
+       </svrl:failed-assert>
+       </xsl:otherwise>
+       </xsl:choose>
+       <xsl:apply-templates mode="M4" select="@*|*" />
+       </xsl:template>-->
   <xsl:template match="text()" mode="M4" priority="-1" />
   <xsl:template match="@*|node()" mode="M4" priority="-2">
     <xsl:apply-templates mode="M4" select="@*|*" />

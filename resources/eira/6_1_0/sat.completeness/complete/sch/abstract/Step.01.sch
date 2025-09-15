@@ -28,7 +28,7 @@
 		<assert test="$EIRA-004" flag="fatal" id="EIRA-004">[EIRA-004] SBB '<value-of select="$ElementName"/>' references an invalid ABB. No ABB is defined for name '<value-of select="$SBBDeclaredABB"/>'.</assert>
 		<assert test="$EIRA-006" flag="warning" id="EIRA-006">[EIRA-006] SBB '<value-of select="$ElementName"/>' refers to deprecated ABB '<value-of select="$SBBDeclaredABB"/>'.</assert>
 	</rule>
- 	<rule context="$ArchitectureBuildingBlock">
+ 	<!--<rule context="$ArchitectureBuildingBlock">
 		<assert test="$EIRA-008" flag="fatal" id="EIRA-008">[EIRA-008] ABB '<value-of select="$ElementName"/>' defined with element type '<value-of select="$ElementType"/>' that does not match the EIRA. Expected element type '<value-of select="$EIRAABBElementType"/>'.</assert>
- 	</rule>
+ 	</rule>-->
 </pattern>
