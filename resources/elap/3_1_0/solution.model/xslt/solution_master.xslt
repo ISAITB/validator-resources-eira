@@ -960,9 +960,9 @@
     
     <!--ASSERT -->
     <xsl:choose>
-      <xsl:when test="exists(/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = $root/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'elap:PURI']/@identifier]/a:value = 'http://data.europa.eu/2sa/elap/digitalSovereignty'])" />
+      <xsl:when test="exists(/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = $root/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'elap:PURI']/@identifier]/a:value = 'http://data.europa.eu/2sa/elap/digital-sovereignty'])" />
       <xsl:otherwise>
-        <svrl:failed-assert test="exists(/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = $root/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'elap:PURI']/@identifier]/a:value = 'http://data.europa.eu/2sa/elap/digitalSovereignty'])">
+        <svrl:failed-assert test="exists(/a:model/a:elements/a:element[a:properties/a:property[@propertyDefinitionRef = $root/a:model/a:propertyDefinitions/a:propertyDefinition[a:name = 'elap:PURI']/@identifier]/a:value = 'http://data.europa.eu/2sa/elap/digital-sovereignty'])">
           <xsl:attribute name="id">ELAP-001</xsl:attribute>
           <xsl:attribute name="flag">fatal</xsl:attribute>
           <xsl:attribute name="location">
