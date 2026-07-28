@@ -1,0 +1,10 @@
+<pattern xmlns="http://purl.oclc.org/dsdl/schematron" abstract="true" id="Step.02">
+ 	<rule context="$SBB">
+	    <assert test="$EIRA-011" flag="warning" id="EIRA-011">[EIRA-011] SBB '<value-of select="$ElementName"/>' (<value-of select="$SBBDeclaredABB"/>) is not present in the model's Legal view.</assert>
+	    <assert test="$EIRA-012" flag="warning" id="EIRA-012">[EIRA-012] SBB '<value-of select="$ElementName"/>' (<value-of select="$SBBDeclaredABB"/>) is not present in the model's Organisational view.</assert>
+	    <assert test="$EIRA-013" flag="warning" id="EIRA-013">[EIRA-013] SBB '<value-of select="$ElementName"/>' (<value-of select="$SBBDeclaredABB"/>) is not present in the model's Semantic view.</assert>
+	    <assert test="$EIRA-014" flag="warning" id="EIRA-014">[EIRA-014] SBB '<value-of select="$ElementName"/>' (<value-of select="$SBBDeclaredABB"/>) is not present in the model's Technical view - application.</assert>
+	    <assert test="$EIRA-015" flag="warning" id="EIRA-015">[EIRA-015] SBB '<value-of select="$ElementName"/>' (<value-of select="$SBBDeclaredABB"/>) is not present in the model's Technical view - infrastructure.</assert>
+	    <assert test="$EIRA-017" flag="warning" id="EIRA-017">[EIRA-017] SBB '<value-of select="$ElementName"/>' (<value-of select="$SBBDeclaredABB"/>) is not present in one of the model's Technical views.</assert>
+ 	</rule>
+</pattern>
