@@ -109,7 +109,7 @@ The latest release of the new EIF is available here: https://ec.europa.eu/isa2/e
       <value xml:lang="es" />
     </property>
     <property propertyDefinitionRef="propid-58">
-      <value xml:lang="es">EIRA v6.0.2</value>
+      <value xml:lang="es">EIRA v7.0.0</value>
     </property>
     <property propertyDefinitionRef="propid-59">
       <value xml:lang="es" />

@@ -91,7 +91,7 @@ The latest release of the new EIF is available here: https://ec.europa.eu/isa2/e
       <value xml:lang="es" />
     </property>
     <property propertyDefinitionRef="propid-68">
-      <value xml:lang="es">eGovERA Business Agnostic RA v6.0.2</value>
+      <value xml:lang="es">eGovERA Business Agnostic RA v7.0.0</value>
     </property>
   </properties>
   <elements>
